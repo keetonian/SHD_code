@@ -6,7 +6,7 @@ LD = ld
 
 LDFLAGS = -r
 
-CFLAGS = -O3 -msse4.2 -I .
+CFLAGS = -O3 -msse4.2 -I . -I/usr/local/boost_1_62_0	
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
 endif
