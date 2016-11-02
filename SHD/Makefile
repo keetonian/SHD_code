@@ -1,4 +1,4 @@
-EXECUTABLE = countPassFilter popcount bit_convert vector_filter string_cp shift sse.o#ssse3_popcount test_modifier
+EXECUTABLE = countPassFilter popcount bit_convert vector_filter string_cp shift #ssse3_popcount test_modifier
 
 CXX = g++
 
