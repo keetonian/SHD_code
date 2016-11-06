@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include "readfasta.hpp"
+#include "compare16.hpp"
 
 using namespace std;
 
