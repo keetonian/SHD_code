@@ -30,7 +30,7 @@ static std::vector<long> * compare16(vector<unsigned short>* ref, vector<unsigne
   unsigned int ref_size = ref->size();
 
   // Compare read strand with entire reference genome.
-  for(k = 0; k < ref_size - read_size; k++) {
+  for(k = 0; k <= ref_size - read_size; k++) {
     int result = 0;
     for(i = 0; (unsigned)i < read_size; i++) {
 
