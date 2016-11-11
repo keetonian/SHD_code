@@ -9,11 +9,10 @@
 using namespace std;
 
 char* ParseFile(char** argv, int i);
-int PrepareData(char* ref_file, char* read_file);
 void PrepareReference16(char* ref_file, vector<long> * chromosomes);
 unsigned short ConvertCharacters16(char char1, char char2);
-static std::vector<unsigned short> * ref = new vector<unsigned short>();
-static std::vector<unsigned short> * read = new vector<unsigned short>();
+static std::vector<unsigned short> * ref = new vector<unsigned short>(0);
+static std::vector<unsigned short> * read = new vector<unsigned short>(0);
 
 int main(int argc, char** argv)
 {
@@ -24,6 +23,8 @@ int main(int argc, char** argv)
 
   char* reference_file = 0;
   char* read_file = 0;
+
+  // Set some default parameters
   int shift = 0;
   int threshold = 90;
   int i = 1;
@@ -48,12 +49,13 @@ int main(int argc, char** argv)
             cout << "\t-r: read sequence path\n";
             cout << "\t-h: display this help file\n";
             cout << "\t-t: tolerated error threshold\n";
+            cout << "\t\t0: only exact matches (no errors tolerated)
             cout << "\t-s: shift distance\n";
             // Using the help flag will only print this help dialog.
             return 0;
           }
           break;
-        case 'r': //read
+        case 'r': //read file
           {
             read_file = ParseFile(argv, i);
             if(read_file == 0) {
@@ -64,7 +66,7 @@ int main(int argc, char** argv)
             cout << "Read: " << read_file << "\n";
           }
           break;
-        case 't': //threshold
+        case 't': //threshold (read size - threshold) 0 means no errors tolerated
           {
             if(argv[i][2] != 0)
               threshold = atoi(argv[i]+2);
@@ -97,23 +99,35 @@ int main(int argc, char** argv)
     return 1;
   }
 
+  // ### It would be good to split the rest of main into another function ### \\
+  // It would also be worth it to test this code to make sure it:
+  //    Compares each step of the reference only 1 time (no more, no less)
+  //    Accurately returns the number of matches.
+
+  // Not used yet.
   vector<long> chromosomes();
 
+  // Set up and read from the file with the read sequences
   string read_line;
   ifstream file(read_file);
   if(file.is_open()) {
     long linec = 0;
+
+    // Set up and read from the reference genome file
     string ref_line, ref_line2;
     ifstream reference(reference_file);
     if(reference.is_open()){
       char previous = 0;
 
+      // Step through the read sequences
       while(getline(file, read_line)) {
         if(((linec - 1) % 4) == 0){
-          // Convert the read
           int j = 0;
-          printf("%d\n", read_line.size());
+
+          // Print the current read sequence
           printf("%s\n", read_line.c_str());
+
+          // Convert the read into the 16 bit encodings
           std::vector<unsigned short> readv(0);
           if(previous)
             readv.push_back(ConvertCharacters16(previous, read_line[0]));
@@ -123,31 +137,43 @@ int main(int argc, char** argv)
           previous = read_line[read_line.size() -1];
 
           // Step through the reference and do comparison
+          getline(reference, ref_line); // first line is chromosomal information
           getline(reference, ref_line);
-          getline(reference, ref_line);
-          int size = ref_line.size() << 1;
           int matches = 0;
           unsigned int loc = 1;
           while(getline(reference, ref_line2)) {
-            if(ref_line2[0] == '>')
+            if(ref_line2[0] == '>') // contains chromosomal information. skip.
               continue;
             string line = ref_line + ref_line2;
+            
+            //Convert the reference into the 16 bit encodings.
             vector<unsigned short> refv(0);
             int i = 0;
-            for(; i < size-1; i++) {
+            for(; i < string.size()-1; i++) {
               refv.push_back(ConvertCharacters16(line[i], line[i+1]));
             }
             ref_line = ref_line2;
-            //cout<<compare16(&refv, &readv, shift, threshold) << endl;
             std::vector<long> * v = compare16(&refv, &readv, shift, threshold);
+            
+            // Loc only tracks how many lines of the reference genome have been read
+            // It does not count chromosomal information lines.
             loc++;
+
+            // If a match or matches were found, print the entire string.
+            // This will later turn to printing either a location or just the (read sized) reference
             if(v->size()){
               printf("%s\n",line.c_str());
               printf("%d\n", loc);
             }
+
+            // Increment the total matches
             matches += v->size();
           }
+
+          // Return to the beginning of the reference file
           reference.seekg(0, reference.beg);
+
+          // Print total number of matches
           printf("TOTAL MATCHES: %d\n", matches);
         }
         linec++;
@@ -165,21 +191,8 @@ int main(int argc, char** argv)
   }
       
 
-  //PrepareReference16(reference_file, chromosomes);
-  printf("Reference size:%lu\n", ref->size());
   // This doesn't yet test if multiple of the same flag are used, or other cases.
-
-
-  // If the program gets to this point, it should have a file path to both the read and the ref.
   // The program still needs to check the file extensions and types of the read and ref given.
-  // This is where the rest of the work will be done.
-  //
-  // Change the input from string to array of unsigned short:
-  // PrepareData(reference_file, read_file);
-  std::vector<long> *positions = compare16(ref, read, shift, threshold);
-  
-  for(i = 0; (unsigned)i < positions->size(); i++)
-    cout << "Element " << i << ":" << positions->at(i) <<endl;
 
   return 0;
 }
@@ -203,21 +216,9 @@ char* ParseFile(char** argv, int i) {
   return file_name;
 }
 
-int PrepareData(char* ref_file, char* read_file){
-  // Need to fully implement this method. Right now using dummy data:
-  for(int i = 0; i < 100000000; i++) {
-    ref->push_back(1<<i);
-  }
-
-  for(int j = 0; j < 5; j++) {
-    read->push_back(1<<j);
-  }
-
-  return 0;
-}
-
 /*
  * Opens the reference file, converts it to 16-bit encodings.
+ * This method is very memory-hungry. It attemps to load the entire reference.
  * AA: 0x8000 
  * AT: 0x4000
  * AC: 0x2000
@@ -240,6 +241,8 @@ void PrepareReference16(char* ref_file, vector<long> * chromosomes){
   ifstream reference(ref_file);
   if(reference.is_open()) {
     char previous = 0;
+
+    // What if we tried buffers instead of lines?
     while(getline(reference, line)) {
       if (line[0] != '>'){
         int i = 0;
@@ -263,6 +266,9 @@ void PrepareReference16(char* ref_file, vector<long> * chromosomes){
   }
 }
 
+/*
+ * Converts 2 characters to their 16-bit encodings
+ * */
 unsigned short ConvertCharacters16(char char1, char char2) {
   if(char1 == 'A') {
     switch(char2) {
@@ -304,6 +310,8 @@ unsigned short ConvertCharacters16(char char1, char char2) {
     return 0;
 }
 
+
+// 4-bit encodings. We need to decide how we would like to do these.
 unsigned char ConvertCharacter4(char char1);
 
 unsigned char ConvertCharacters4(char char1, char char2) {
