@@ -9,9 +9,9 @@
 using namespace std;
 
 char* ParseFile(char** argv, int i);
-void PrepareReference16(char* ref_file, vector<long> * chromosomes);
+void PrepareReference16(char* ref_file, vector<unsigned short> * ref);
 unsigned short ConvertCharacters16(char char1, char char2);
-static std::vector<unsigned short> * ref = new vector<unsigned short>(0);
+//static std::vector<unsigned short> * ref = new vector<unsigned short>(0);
 static std::vector<unsigned short> * read = new vector<unsigned short>(0);
 
 int main(int argc, char** argv)
@@ -49,7 +49,7 @@ int main(int argc, char** argv)
             cout << "\t-r: read sequence path\n";
             cout << "\t-h: display this help file\n";
             cout << "\t-t: tolerated error threshold\n";
-            cout << "\t\t0: only exact matches (no errors tolerated)
+            cout << "\t\t0: only exact matches (no errors tolerated)\n";
             cout << "\t-s: shift distance\n";
             // Using the help flag will only print this help dialog.
             return 0;
@@ -98,6 +98,12 @@ int main(int argc, char** argv)
     cerr<< "Need to specify a reference and read file.\n";
     return 1;
   }
+
+  //std::vector<unsigned short> ref(0);
+  //ref.reserve(4000000000);
+  //printf("reserved");
+  //PrepareReference16(reference_file, &ref);
+  //printf("ref created");
 
   // ### It would be good to split the rest of main into another function ### \\
   // It would also be worth it to test this code to make sure it:
@@ -149,11 +155,11 @@ int main(int argc, char** argv)
             //Convert the reference into the 16 bit encodings.
             vector<unsigned short> refv(0);
             int i = 0;
-            for(; i < string.size()-1; i++) {
+            for(; i < line.size()-1; i++) {
               refv.push_back(ConvertCharacters16(line[i], line[i+1]));
             }
             ref_line = ref_line2;
-            std::vector<long> * v = compare16(&refv, &readv, shift, threshold);
+            std::vector<long> v = compare16(&refv, &readv, shift, threshold);
             
             // Loc only tracks how many lines of the reference genome have been read
             // It does not count chromosomal information lines.
@@ -161,13 +167,13 @@ int main(int argc, char** argv)
 
             // If a match or matches were found, print the entire string.
             // This will later turn to printing either a location or just the (read sized) reference
-            if(v->size()){
+            if(v.size()){
               printf("%s\n",line.c_str());
               printf("%d\n", loc);
             }
 
             // Increment the total matches
-            matches += v->size();
+            matches += v.size();
           }
 
           // Return to the beginning of the reference file
@@ -236,7 +242,7 @@ char* ParseFile(char** argv, int i) {
  * GC: 0x0002
  * GG: 0x0001
  */
-void PrepareReference16(char* ref_file, vector<long> * chromosomes){
+void PrepareReference16(char* ref_file, vector<unsigned short> * ref){
   string line;
   ifstream reference(ref_file);
   if(reference.is_open()) {

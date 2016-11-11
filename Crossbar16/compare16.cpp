@@ -11,7 +11,7 @@ using namespace std;
  * shift: multiplex distance
  * threshold: minimum value allowed.
  */
-static std::vector<long> * compare16(vector<unsigned short>* ref, vector<unsigned short>* read, int shift, int threshold) {
+static std::vector<long> compare16(vector<unsigned short>* ref, vector<unsigned short>* read, int shift, int threshold) {
 
   // Compare the read against every spot in the reference
   // Return an array of locations in the reference that are viable
@@ -51,5 +51,5 @@ static std::vector<long> * compare16(vector<unsigned short>* ref, vector<unsigne
       results.push_back(k);
   }
 
-  return &results;
+  return results;
 }
