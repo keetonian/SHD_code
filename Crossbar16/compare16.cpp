@@ -18,10 +18,7 @@ static std::vector<long> * compare16(vector<unsigned short>* ref, vector<unsigne
   // Alternatively could return an array of strings of viable comparison spots.
 
   // Set up space for results.
-  std::vector<long> * results;
-  results = new vector<long>();
-
-  printf("Shift:%d\n",shift);
+  vector<long> results(0);
 
   // Set up variables
   int i = 0;
@@ -51,8 +48,8 @@ static std::vector<long> * compare16(vector<unsigned short>* ref, vector<unsigne
     }
     //If the result is over or equal to the threshold
     if(result >= (int)read_size - threshold)
-      results->push_back(k);
+      results.push_back(k);
   }
 
-  return results;
+  return &results;
 }

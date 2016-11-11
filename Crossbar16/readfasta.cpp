@@ -12,8 +12,8 @@ char* ParseFile(char** argv, int i);
 int PrepareData(char* ref_file, char* read_file);
 void PrepareReference16(char* ref_file, vector<long> * chromosomes);
 unsigned short ConvertCharacters16(char char1, char char2);
-static std::vector<unsigned short> * ref = new vector<unsigned short>(400);
-static std::vector<unsigned short> * read = new vector<unsigned short>(200);
+static std::vector<unsigned short> * ref = new vector<unsigned short>();
+static std::vector<unsigned short> * read = new vector<unsigned short>();
 
 int main(int argc, char** argv)
 {
@@ -25,7 +25,7 @@ int main(int argc, char** argv)
   char* reference_file = 0;
   char* read_file = 0;
   int shift = 0;
-  int threshold = 126;
+  int threshold = 90;
   int i = 1;
   for(; i < argc; i++) {
     if (argv[i][0] == '-') {
@@ -108,13 +108,13 @@ int main(int argc, char** argv)
     if(reference.is_open()){
       char previous = 0;
 
-      // #### NOTE: IT DOESN'T SEEM TO BE READING THIS YET ####
-
       while(getline(file, read_line)) {
         if(((linec - 1) % 4) == 0){
           // Convert the read
           int j = 0;
-          vector<unsigned short> readv(read_line.size());
+          printf("%d\n", read_line.size());
+          printf("%s\n", read_line.c_str());
+          std::vector<unsigned short> readv(0);
           if(previous)
             readv.push_back(ConvertCharacters16(previous, read_line[0]));
           for(; j < read_line.size()-1; j++) {
@@ -126,23 +126,32 @@ int main(int argc, char** argv)
           getline(reference, ref_line);
           getline(reference, ref_line);
           int size = ref_line.size() << 1;
+          int matches = 0;
+          unsigned int loc = 1;
           while(getline(reference, ref_line2)) {
             if(ref_line2[0] == '>')
               continue;
             string line = ref_line + ref_line2;
-            vector<unsigned short> refv(size);
+            vector<unsigned short> refv(0);
             int i = 0;
             for(; i < size-1; i++) {
               refv.push_back(ConvertCharacters16(line[i], line[i+1]));
             }
-            
             ref_line = ref_line2;
-            cout<<compare16(&refv, &readv, shift, threshold) << endl;
+            //cout<<compare16(&refv, &readv, shift, threshold) << endl;
+            std::vector<long> * v = compare16(&refv, &readv, shift, threshold);
+            loc++;
+            if(v->size()){
+              printf("%s\n",line.c_str());
+              printf("%d\n", loc);
+            }
+            matches += v->size();
+          }
+          reference.seekg(0, reference.beg);
+          printf("TOTAL MATCHES: %d\n", matches);
         }
         linec++;
-        reference.seekg(0, reference.beg);
       }
-    }
     }
     else {
       cerr << "Unable to open reference file \n";
