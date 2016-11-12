@@ -99,11 +99,11 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  //std::vector<unsigned short> ref(0);
-  //ref.reserve(4000000000);
-  //printf("reserved");
-  //PrepareReference16(reference_file, &ref);
-  //printf("ref created");
+  std::vector<unsigned short> ref(0);
+  ref.reserve(4000000000);
+  cout << "reserved\n";
+  PrepareReference16(reference_file, &ref);
+  cout << "Created\n";
 
   // ### It would be good to split the rest of main into another function ### \\
   // It would also be worth it to test this code to make sure it:
@@ -119,76 +119,31 @@ int main(int argc, char** argv)
   if(file.is_open()) {
     long linec = 0;
 
-    // Set up and read from the reference genome file
-    string ref_line, ref_line2;
-    ifstream reference(reference_file);
-    if(reference.is_open()){
-      char previous = 0;
+    // Step through the read sequences
+    while(getline(file, read_line)) {
+      if(((linec - 1) % 4) == 0){
+        int j = 0;
 
-      // Step through the read sequences
-      while(getline(file, read_line)) {
-        if(((linec - 1) % 4) == 0){
-          int j = 0;
+        // Print the current read sequence
+        printf("%s\n", read_line.c_str());
 
-          // Print the current read sequence
-          printf("%s\n", read_line.c_str());
-
-          // Convert the read into the 16 bit encodings
-          std::vector<unsigned short> readv(0);
-          if(previous)
-            readv.push_back(ConvertCharacters16(previous, read_line[0]));
-          for(; j < read_line.size()-1; j++) {
-            readv.push_back(ConvertCharacters16(read_line[j], read_line[j+1]));
-          }
-          previous = read_line[read_line.size() -1];
-
-          // Step through the reference and do comparison
-          getline(reference, ref_line); // first line is chromosomal information
-          getline(reference, ref_line);
-          int matches = 0;
-          unsigned int loc = 1;
-          while(getline(reference, ref_line2)) {
-            if(ref_line2[0] == '>') // contains chromosomal information. skip.
-              continue;
-            string line = ref_line + ref_line2;
-            
-            //Convert the reference into the 16 bit encodings.
-            vector<unsigned short> refv(0);
-            int i = 0;
-            for(; i < line.size()-1; i++) {
-              refv.push_back(ConvertCharacters16(line[i], line[i+1]));
-            }
-            ref_line = ref_line2;
-            std::vector<long> v = compare16(&refv, &readv, shift, threshold);
-            
-            // Loc only tracks how many lines of the reference genome have been read
-            // It does not count chromosomal information lines.
-            loc++;
-
-            // If a match or matches were found, print the entire string.
-            // This will later turn to printing either a location or just the (read sized) reference
-            if(v.size()){
-              printf("%s\n",line.c_str());
-              printf("%d\n", loc);
-            }
-
-            // Increment the total matches
-            matches += v.size();
-          }
-
-          // Return to the beginning of the reference file
-          reference.seekg(0, reference.beg);
-
-          // Print total number of matches
-          printf("TOTAL MATCHES: %d\n", matches);
+        // Convert the read into the 16 bit encodings
+        std::vector<unsigned short> readv(0);
+        for(; j < read_line.size()-1; j++) {
+          readv.push_back(ConvertCharacters16(read_line[j], read_line[j+1]));
         }
-        linec++;
+
+        std::vector<long> v = compare16(&ref, readv, shift, threshold);
+            
+        // If a match or matches were found, print the entire string.
+        // This will later turn to printing either a location or just the (read sized) reference
+
+        // Increment the total matches
+
+        // Print total number of matches
+        printf("TOTAL MATCHES: %d\n", v.size());
       }
-    }
-    else {
-      cerr << "Unable to open reference file \n";
-      file.close();
-      return 1;
+      linec++;
     }
   }
   else {
@@ -247,9 +202,11 @@ void PrepareReference16(char* ref_file, vector<unsigned short> * ref){
   ifstream reference(ref_file);
   if(reference.is_open()) {
     char previous = 0;
-
+    cout<<"Ref open\n";
     // What if we tried buffers instead of lines?
     while(getline(reference, line)) {
+      if(line.size() ==0)
+        continue;
       if (line[0] != '>'){
         int i = 0;
         if(previous)
@@ -264,12 +221,15 @@ void PrepareReference16(char* ref_file, vector<unsigned short> * ref){
       }
     }
 
+    cout<<"Closing reference\n";
     reference.close();
+    cout<<"Reference closed\n";
   }
   else {
     cerr << "Unable to open reference file\n";
     exit(1);
   }
+  cout<<"returning\n";
 }
 
 /*
