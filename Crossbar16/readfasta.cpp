@@ -5,14 +5,19 @@
 #include <fstream>
 
 #include "compare16.cpp"
+#include "compare4.cpp"
 
 using namespace std;
 
 char* ParseFile(char** argv, int i);
 void PrepareReference16(char* ref_file, vector<unsigned short> * ref);
+void PrepareReference4(char* ref_file, vector<unsigned char> * ref);
 unsigned short ConvertCharacters16(char char1, char char2);
 //static std::vector<unsigned short> * ref = new vector<unsigned short>(0);
 static std::vector<unsigned short> * read = new vector<unsigned short>(0);
+void CompareRead16(char* read_file, char* reference_file, int shift, int threshold);
+void CompareRead4(char* read_file, char* reference_file, int shift, int threshold);
+unsigned char ConvertCharacter4(char char1);
 
 int main(int argc, char** argv)
 {
@@ -26,6 +31,7 @@ int main(int argc, char** argv)
 
   // Set some default parameters
   int shift = 0;
+  int encoding = 0;
   int threshold = 90;
   int i = 1;
   for(; i < argc; i++) {
@@ -41,6 +47,10 @@ int main(int argc, char** argv)
             // Debugging output, remove later.
             cout << "Reference: " << reference_file << "\n";
           }
+          break;
+        case '4': encoding = 0;
+          break;
+        case '1': encoding = 1;
           break;
         case 'h': //help
           {
@@ -97,13 +107,7 @@ int main(int argc, char** argv)
   if(!reference_file || !read_file) {
     cerr<< "Need to specify a reference and read file.\n";
     return 1;
-  }
-
-  std::vector<unsigned short> ref(0);
-  ref.reserve(4000000000);
-  cout << "reserved\n";
-  PrepareReference16(reference_file, &ref);
-  cout << "Created\n";
+  } 
 
   // ### It would be good to split the rest of main into another function ### \\
   // It would also be worth it to test this code to make sure it:
@@ -112,7 +116,45 @@ int main(int argc, char** argv)
 
   // Not used yet.
   vector<long> chromosomes();
+  if(encoding){
+		cout<<"16 Bit encodings."<<endl;
+    CompareRead16(read_file, reference_file, shift, threshold);
+	}
+  else{
+		cout<<"4 Bit encodings."<<endl;
+    CompareRead4(read_file, reference_file, shift, threshold);
+	}
 
+  // This doesn't yet test if multiple of the same flag are used, or other cases.
+  // The program still needs to check the file extensions and types of the read and ref given.
+
+  return 0;
+}
+
+/*
+ * Parses a file path from the command line arguments
+ */
+char* ParseFile(char** argv, int i) {
+  char* file_name = 0;
+  if(argv[i][2] == 0) {
+    //Means that the file should be in the next argument.
+    file_name = argv[i+1];
+    if(file_name[0] == '-') {
+      return 0;
+    }
+  }
+  else {
+    //Means that the file should be part of the current argument.
+    file_name = argv[i] + 2;
+  }
+  return file_name;
+}
+
+void CompareRead16(char* read_file, char* reference_file, int shift, int threshold) {
+  std::vector<unsigned short> ref(0);
+  ref.reserve(4000000000);
+  PrepareReference16(reference_file, &ref);
+  cout << "Reference Parsed\n";
   // Set up and read from the file with the read sequences
   string read_line;
   ifstream file(read_file);
@@ -148,33 +190,52 @@ int main(int argc, char** argv)
   }
   else {
     cerr << "Unable to open reference file \n";
-    return 1;
+    exit(1);
   }
-      
-
-  // This doesn't yet test if multiple of the same flag are used, or other cases.
-  // The program still needs to check the file extensions and types of the read and ref given.
-
-  return 0;
 }
 
-/*
- * Parses a file path from the command line arguments
- */
-char* ParseFile(char** argv, int i) {
-  char* file_name = 0;
-  if(argv[i][2] == 0) {
-    //Means that the file should be in the next argument.
-    file_name = argv[i+1];
-    if(file_name[0] == '-') {
-      return 0;
+void CompareRead4(char* read_file, char* reference_file, int shift, int threshold) {
+  std::vector<unsigned char> ref(0);
+  ref.reserve(4000000000);
+  PrepareReference4(reference_file, &ref);
+  cout << "Reference Parsed\n";
+  // Set up and read from the file with the read sequences
+  string read_line;
+  ifstream file(read_file);
+  if(file.is_open()) {
+    long linec = 0;
+
+    // Step through the read sequences
+    while(getline(file, read_line)) {
+      if(((linec - 1) % 4) == 0){
+        int j = 0;
+
+        // Print the current read sequence
+        printf("%s\n", read_line.c_str());
+
+        // Convert the read into the 16 bit encodings
+        std::vector<unsigned char> readv(0);
+        for(; j < read_line.size()-1; j++) {
+          readv.push_back(ConvertCharacter4(read_line[j]));
+        }
+
+        std::vector<long> v = compare4(&ref, readv, shift, threshold);
+            
+        // If a match or matches were found, print the entire string.
+        // This will later turn to printing either a location or just the (read sized) reference
+
+        // Increment the total matches
+
+        // Print total number of matches
+        printf("TOTAL MATCHES: %d\n", v.size());
+      }
+      linec++;
     }
   }
   else {
-    //Means that the file should be part of the current argument.
-    file_name = argv[i] + 2;
+    cerr << "Unable to open reference file \n";
+    exit(1);
   }
-  return file_name;
 }
 
 /*
@@ -202,7 +263,6 @@ void PrepareReference16(char* ref_file, vector<unsigned short> * ref){
   ifstream reference(ref_file);
   if(reference.is_open()) {
     char previous = 0;
-    cout<<"Ref open\n";
     // What if we tried buffers instead of lines?
     while(getline(reference, line)) {
       if(line.size() ==0)
@@ -221,9 +281,7 @@ void PrepareReference16(char* ref_file, vector<unsigned short> * ref){
       }
     }
 
-    cout<<"Closing reference\n";
     reference.close();
-    cout<<"Reference closed\n";
   }
   else {
     cerr << "Unable to open reference file\n";
@@ -277,8 +335,34 @@ unsigned short ConvertCharacters16(char char1, char char2) {
 }
 
 
-// 4-bit encodings. We need to decide how we would like to do these.
-unsigned char ConvertCharacter4(char char1);
+void PrepareReference4(char* ref_file, vector<unsigned char> * ref){
+  string line;
+  ifstream reference(ref_file);
+  if(reference.is_open()) {
+    // What if we tried buffers instead of lines?
+    while(getline(reference, line)) {
+      if(line.size() ==0)
+        continue;
+      if (line[0] != '>'){
+        int i = 0;
+        for(; i < line.size()-1; i++) {
+          ref->push_back(ConvertCharacter4(line[i]));
+        }
+      }
+      else {
+
+      }
+    }
+
+    reference.close();
+  }
+  else {
+    cerr << "Unable to open reference file\n";
+    exit(1);
+  }
+  cout<<"returning\n";
+}
+
 
 unsigned char ConvertCharacters4(char char1, char char2) {
   return (ConvertCharacter4(char1) << 4) + ConvertCharacter4(char2);

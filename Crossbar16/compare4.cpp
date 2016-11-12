@@ -11,7 +11,7 @@ using namespace std;
  * shift: multiplex distance
  * threshold: minimum value allowed.
  */
-static std::vector<long> compare16(vector<unsigned short>* ref, vector<unsigned short> read, int shift, int threshold) {
+static std::vector<long> compare4(vector<unsigned char>* ref, vector<unsigned char> read, int shift, int threshold) {
 
   // Compare the read against every spot in the reference
   // Return an array of locations in the reference that are viable
@@ -30,11 +30,11 @@ static std::vector<long> compare16(vector<unsigned short>* ref, vector<unsigned 
   for(k = 0; k <= ref_size - read_size; k++) {
     int result = 0;
     int error = 0;
-    
+
     for(i = 0; (unsigned)i < read_size; i++) {
 
       // Prepare the read parameters
-      unsigned short a = read.at(i);
+      unsigned char a = read.at(i);
       int j;
       for(j = 0; j <= shift; j++) {
         if(i-j>=0)
@@ -54,12 +54,12 @@ static std::vector<long> compare16(vector<unsigned short>* ref, vector<unsigned 
     }
     //If the result is over or equal to the threshold
     if(result >= (int)read_size - threshold){
-			unsigned int kk = 0;
-			printf("%lu: ", k);
-			for(; kk < read_size; kk++) {
-				printf("%c", ref->at(k+kk));
-			}
-			printf("\n");
+      unsigned int kk = 0;
+      printf("%lu: ", k);
+      for(; kk < read_size; kk++) {
+        printf("%c", ref->at(k+kk));
+      }
+      printf("\n");
       results.push_back(k);
 		}
   }
