@@ -30,9 +30,7 @@ static std::vector<long> compare16(vector<unsigned short>* ref, vector<unsigned 
   for(k = 0; k <= ref_size - read_size; k++) {
     int result = 0;
     int error = 0;
-    
-    for(i = 0; (unsigned)i < read_size; i++) {
-
+    for(i = 0; i < read_size; i++) {
       // Prepare the read parameters
       unsigned short a = read.at(i);
       int j;
@@ -44,16 +42,15 @@ static std::vector<long> compare16(vector<unsigned short>* ref, vector<unsigned 
       }
 
       // Do the comparison
-      if(a & ref->at(k+i))
-        result++;
-      else
+      if(!(a & ref->at(k+i))){
         error++;
-      if(error > threshold)
-        break;
+        if(error > threshold)
+          break;
+      }
 
     }
     //If the result is over or equal to the threshold
-    if(result >= (int)read_size - threshold){
+    if(error <= threshold){
 			unsigned int kk = 0;
 			printf("%lu:\n", k);
 			for(; kk < read_size; kk+=2) {

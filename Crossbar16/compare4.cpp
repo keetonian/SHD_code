@@ -28,10 +28,9 @@ static std::vector<long> compare4(vector<unsigned char>* ref, vector<unsigned ch
 
   // Compare read strand with entire reference genome.
   for(k = 0; k <= ref_size - read_size; k++) {
-    int result = 0;
     int error = 0;
 
-    for(i = 0; (unsigned)i < read_size; i++) {
+    for(i = 0; i < read_size; i++) {
 
       // Prepare the read parameters
       unsigned char a = read.at(i);
@@ -44,19 +43,18 @@ static std::vector<long> compare4(vector<unsigned char>* ref, vector<unsigned ch
       }
 
       // Do the comparison
-      if(a & ref->at(k+i))
-        result++;
-      else
+      if(!(a & ref->at(k+i))){
         error++;
-      if(error > threshold)
-        break;
+        if(error > threshold)
+          break;
+      }
 
     }
     //If the result is over or equal to the threshold
-    if(result >= (int)read_size - threshold){
+    if(error <= threshold){
       unsigned int kk = 0;
       printf("%lu:\n", k);
-      for(; kk < read_size; kk++) {
+      for(; kk <= read_size; kk++) {
         unsigned char c1 = ref->at(k+kk);
         char c2 = 0x20;
         switch(c1) {
@@ -66,8 +64,8 @@ static std::vector<long> compare4(vector<unsigned char>* ref, vector<unsigned ch
           case 0x1: c2 = 'G'; break;
           case 0x0: c2 = 'N'; break;
           default: c2 = ' '; break;
-        printf("%c", c2);
         }
+        printf("%c", c2);
       }
       printf("\n");
       results.push_back(k);
