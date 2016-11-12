@@ -55,9 +55,19 @@ static std::vector<long> compare4(vector<unsigned char>* ref, vector<unsigned ch
     //If the result is over or equal to the threshold
     if(result >= (int)read_size - threshold){
       unsigned int kk = 0;
-      printf("%lu: ", k);
+      printf("%lu:\n", k);
       for(; kk < read_size; kk++) {
-        printf("%c", ref->at(k+kk));
+        unsigned char c1 = ref->at(k+kk);
+        char c2 = 0x20;
+        switch(c1) {
+          case 0x8: c2 = 'A'; break;
+          case 0x4: c2 = 'T'; break;
+          case 0x2: c2 = 'C'; break;
+          case 0x1: c2 = 'G'; break;
+          case 0x0: c2 = 'N'; break;
+          default: c2 = ' '; break;
+        printf("%c", c2);
+        }
       }
       printf("\n");
       results.push_back(k);

@@ -32,7 +32,7 @@ int main(int argc, char** argv)
   // Set some default parameters
   int shift = 0;
   int encoding = 0;
-  int threshold = 90;
+  int threshold = 20;
   int i = 1;
   for(; i < argc; i++) {
     if (argv[i][0] == '-') {
@@ -61,6 +61,8 @@ int main(int argc, char** argv)
             cout << "\t-t: tolerated error threshold\n";
             cout << "\t\t0: only exact matches (no errors tolerated)\n";
             cout << "\t-s: shift distance\n";
+            cout << "\t-4: use 4-bit encodings\n";
+            cout << "\t-16: use 16-bit encodings\n";
             // Using the help flag will only print this help dialog.
             return 0;
           }
@@ -82,7 +84,6 @@ int main(int argc, char** argv)
               threshold = atoi(argv[i]+2);
             else
               threshold = atoi(argv[i+1]);
-            printf("threshold: %d\n", threshold);
           }
           break;
         case 's': //shift distance
@@ -91,7 +92,6 @@ int main(int argc, char** argv)
               shift = atoi(argv[i]+2);
             else
               shift = atoi(argv[i+1]);
-            printf("shift: %d\n", shift);
           }
           break;
         default: //unknown flag
@@ -104,15 +104,18 @@ int main(int argc, char** argv)
     }
   }
 
+  printf("shift: %d\n", shift);
+  printf("threshold: %d\n", threshold);
+
   if(!reference_file || !read_file) {
     cerr<< "Need to specify a reference and read file.\n";
     return 1;
   } 
 
-  // ### It would be good to split the rest of main into another function ### \\
-  // It would also be worth it to test this code to make sure it:
-  //    Compares each step of the reference only 1 time (no more, no less)
-  //    Accurately returns the number of matches.
+   /* It would be worth it to test this code to make sure it:
+   *    Compares each step of the reference only 1 time (no more, no less)
+   *    Accurately returns the number of matches.
+   */
 
   // Not used yet.
   vector<long> chromosomes();
@@ -171,7 +174,7 @@ void CompareRead16(char* read_file, char* reference_file, int shift, int thresho
 
         // Convert the read into the 16 bit encodings
         std::vector<unsigned short> readv(0);
-        for(; j < read_line.size()-1; j++) {
+        for(; (unsigned)j < read_line.size()-1; j++) {
           readv.push_back(ConvertCharacters16(read_line[j], read_line[j+1]));
         }
 
@@ -183,7 +186,7 @@ void CompareRead16(char* read_file, char* reference_file, int shift, int thresho
         // Increment the total matches
 
         // Print total number of matches
-        printf("TOTAL MATCHES: %d\n", v.size());
+        printf("TOTAL MATCHES: %lu\n", v.size());
       }
       linec++;
     }
@@ -215,7 +218,7 @@ void CompareRead4(char* read_file, char* reference_file, int shift, int threshol
 
         // Convert the read into the 16 bit encodings
         std::vector<unsigned char> readv(0);
-        for(; j < read_line.size()-1; j++) {
+        for(;(unsigned)j < read_line.size()-1; j++) {
           readv.push_back(ConvertCharacter4(read_line[j]));
         }
 
@@ -227,7 +230,7 @@ void CompareRead4(char* read_file, char* reference_file, int shift, int threshol
         // Increment the total matches
 
         // Print total number of matches
-        printf("TOTAL MATCHES: %d\n", v.size());
+        printf("TOTAL MATCHES: %lu\n", v.size());
       }
       linec++;
     }
@@ -271,7 +274,7 @@ void PrepareReference16(char* ref_file, vector<unsigned short> * ref){
         int i = 0;
         if(previous)
           ref->push_back(ConvertCharacters16(previous, line[0]));
-        for(; i < line.size()-1; i++) {
+        for(; (unsigned)i < line.size()-1; i++) {
           ref->push_back(ConvertCharacters16(line[i], line[i+1]));
         }
         previous = line[line.size()-1];
@@ -345,7 +348,7 @@ void PrepareReference4(char* ref_file, vector<unsigned char> * ref){
         continue;
       if (line[0] != '>'){
         int i = 0;
-        for(; i < line.size()-1; i++) {
+        for(; (unsigned)i < line.size()-1; i++) {
           ref->push_back(ConvertCharacter4(line[i]));
         }
       }
