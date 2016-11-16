@@ -20,6 +20,8 @@ void CompareRead16(char* read_file, char* reference_file, int shift, int thresho
 void CompareRead4(char* read_file, char* reference_file, int shift, int threshold);
 unsigned char ConvertCharacter4(char char1);
 
+static int report_total_matches = 0;
+
 int main(int argc, char** argv)
 {
   if(argc < 2) {
@@ -53,6 +55,8 @@ int main(int argc, char** argv)
           break;
         case '1': encoding = 1;
           break;
+        case 'm': report_total_matches = 1;
+          break;
         case 'h': //help
           {
             cout << "This program compares a read sequence with a reference genome.\n";
@@ -64,6 +68,7 @@ int main(int argc, char** argv)
             cout << "\t-s: shift distance\n";
             cout << "\t-4: use 4-bit encodings\n";
             cout << "\t-16: use 16-bit encodings\n";
+            cout << "\t-m: turn on total match reporting\n";
             // Using the help flag will only print this help dialog.
             return 0;
           }
@@ -98,6 +103,7 @@ int main(int argc, char** argv)
         default: //unknown flag
           {
             cerr << "Error: illegal flag: " << argv[i] << "\n";
+            cerr << "Use -h to print help dialog.\n";
             return 1;
           }
           break;
@@ -196,7 +202,9 @@ void CompareRead16(char* read_file, char* reference_file, int shift, int thresho
             
         // If a match or matches were found, print the entire string.
         // Print total number of matches
-        printf("TOTAL MATCHES: %lu\n\n", v.size());
+        if(report_total_matches)
+          printf("TOTAL MATCHES: %lu\n", v.size());
+        printf("\n");
       }
     }
   }
