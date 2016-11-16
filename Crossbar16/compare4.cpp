@@ -11,7 +11,7 @@ using namespace std;
  * shift: multiplex distance
  * threshold: minimum value allowed.
  */
-static std::vector<long> compare4(vector<unsigned char>* ref, vector<unsigned char> read, int shift, int threshold) {
+static std::vector<long> compare4(vector<unsigned char>* ref, vector<unsigned char> read_in, int shift, int threshold) {
 
   // Compare the read against every spot in the reference
   // Return an array of locations in the reference that are viable
@@ -23,8 +23,22 @@ static std::vector<long> compare4(vector<unsigned char>* ref, vector<unsigned ch
   // Set up variables
   int i = 0;
   long k = 0;
-  unsigned int read_size = read.size();
+  unsigned int read_size = read_in.size();
   unsigned int ref_size = ref->size();
+
+  vector<unsigned char> read(0);
+  read.reserve(read_size);
+  for(i = 0; i < read_size; i++) {
+    unsigned char a = read_in.at(i);
+    int j; 
+    for(j= 0; j <= shift; j++) {
+      if(i=j>=0)
+        a = a | read_in.at(i-j);
+      if((unsigned)(i+j)<read_size)
+        a = a | read_in.at(i+j);
+    }
+    read.push_back(a);
+  }
 
   // Compare read strand with entire reference genome.
   for(k = 0; k <= ref_size - read_size; k++) {
@@ -34,13 +48,6 @@ static std::vector<long> compare4(vector<unsigned char>* ref, vector<unsigned ch
 
       // Prepare the read parameters
       unsigned char a = read.at(i);
-      int j;
-      for(j = 0; j <= shift; j++) {
-        if(i-j>=0)
-          a = a | read.at(i-j);
-        if((unsigned)(i+j)<read_size)
-          a = a | read.at(i+j);
-      }
 
       // Do the comparison
       if(!(a & ref->at(k+i))){

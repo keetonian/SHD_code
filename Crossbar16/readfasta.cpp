@@ -13,6 +13,7 @@ char* ParseFile(char** argv, int i);
 void PrepareReference16(char* ref_file, vector<unsigned short> * ref);
 void PrepareReference4(char* ref_file, vector<unsigned char> * ref);
 unsigned short ConvertCharacters16(char char1, char char2);
+unsigned short ConvertInverseCharacters16(char char1, char char2);
 //static std::vector<unsigned short> * ref = new vector<unsigned short>(0);
 static std::vector<unsigned short> * read = new vector<unsigned short>(0);
 void CompareRead16(char* read_file, char* reference_file, int shift, int threshold);
@@ -166,29 +167,37 @@ void CompareRead16(char* read_file, char* reference_file, int shift, int thresho
 
     // Step through the read sequences
     while(getline(file, read_line)) {
-      if(((linec - 1) % 4) == 0){
-        int j = 0;
+      if(read_line.size() > 2 && read_line[0] == '@') {
+        char c = read_line[0];
+        int cindex = 0;
+        while(c != ' ') {
+          printf("%c", c);
+          cindex++;
+          c = read_line[cindex];
+        }
+        printf("\t");
 
+        getline(file, read_line);
+        int j = 0;
+  
         // Print the current read sequence
         printf("%s\n", read_line.c_str());
 
         // Convert the read into the 16 bit encodings
         std::vector<unsigned short> readv(0);
-        for(; j < read_line.size()-1; j++) {
+        std::vector<unsigned short> read_inverse(0);
+        int read_size = read_line.size();
+        for(; j < read_size-1; j++) {
           readv.push_back(ConvertCharacters16(read_line[j], read_line[j+1]));
+          read_inverse.push_back(ConvertInverseCharacters16(read_line[read_size-(j+1)], read_line[read_size-(j+2)]));
         }
-
-        std::vector<long> v = compare16(&ref, readv, shift, threshold);
+		
+        std::vector<long> v = compare16(&ref, readv, read_inverse, shift, threshold);
             
         // If a match or matches were found, print the entire string.
-        // This will later turn to printing either a location or just the (read sized) reference
-
-        // Increment the total matches
-
         // Print total number of matches
         printf("TOTAL MATCHES: %lu\n\n", v.size());
       }
-      linec++;
     }
   }
   else {
@@ -329,6 +338,50 @@ unsigned short ConvertCharacters16(char char1, char char2) {
       case 'T': return 0x0004;
       case 'C': return 0x0002;
       case 'G': return 0x0001;
+      default: return 0;
+    }
+  }
+  else
+    return 0;
+}
+
+/*
+ * Converts 2 characters to their 16-bit encodings
+ * */
+unsigned short ConvertInverseCharacters16(char char1, char char2) {
+  if(char1 == 'T') {
+    switch(char2) {
+      case 'T': return 0x8000;
+      case 'A': return 0x4000;
+      case 'G': return 0x2000;
+      case 'C': return 0x1000;
+      default: return 0;
+    }
+  }
+  else if(char1 == 'A') {
+    switch(char2) {
+      case 'T': return 0x0800;
+      case 'A': return 0x0400;
+      case 'G': return 0x0200;
+      case 'C': return 0x0100;
+      default: return 0;
+    }
+  }
+  else if(char1 == 'G') {
+    switch(char2) {
+      case 'T': return 0x0080;
+      case 'A': return 0x0040;
+      case 'G': return 0x0020;
+      case 'C': return 0x0010;
+      default: return 0;
+    }
+  }
+  else if(char1 == 'C') {
+    switch(char2) {
+      case 'T': return 0x0008;
+      case 'A': return 0x0004;
+      case 'G': return 0x0002;
+      case 'C': return 0x0001;
       default: return 0;
     }
   }
