@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include "compare16.cpp"
+#include "ctpl.h"
 #include "compare4.cpp"
 
 using namespace std;
@@ -15,7 +16,8 @@ void PrepareReference4(char* ref_file, vector<unsigned char> * ref);
 unsigned short ConvertCharacters16(char char1, char char2);
 unsigned short ConvertInverseCharacters16(char char1, char char2);
 //static std::vector<unsigned short> * ref = new vector<unsigned short>(0);
-static std::vector<unsigned short> * read = new vector<unsigned short>(0);
+void read_compare_func(int id, string header, string read_line, vector<unsigned short> * ref, int shift, int threshold);
+//static std::vector<unsigned short> * read = new vector<unsigned short>(0);
 void CompareRead16(char* read_file, char* reference_file, int shift, int threshold);
 void CompareRead4(char* read_file, char* reference_file, int shift, int threshold);
 unsigned char ConvertCharacter4(char char1);
@@ -111,8 +113,8 @@ int main(int argc, char** argv)
     }
   }
 
-  printf("shift: %d\n", shift);
-  printf("threshold: %d\n", threshold);
+  cout<<"shift: "<< shift<<endl;
+  cout<<"threshold: "<< threshold<<endl;
 
   if(!reference_file || !read_file) {
     cerr<< "Need to specify a reference and read file.\n";
@@ -127,11 +129,11 @@ int main(int argc, char** argv)
   // Not used yet.
   vector<long> chromosomes();
   if(encoding){
-		printf("16 Bit encodings.\n");
+		cout<<"16 Bit encodings.\n";
     CompareRead16(read_file, reference_file, shift, threshold);
 	}
   else{
-    printf("4 Bit encodings.\n");
+    cout<<"4 Bit encodings.\n";
     CompareRead4(read_file, reference_file, shift, threshold);
 	}
 
@@ -164,6 +166,7 @@ void CompareRead16(char* read_file, char* reference_file, int shift, int thresho
   std::vector<unsigned short> ref(0);
   ref.reserve(4000000000);
   PrepareReference16(reference_file, &ref);
+  ctpl::thread_pool p(10);
 
   // Set up and read from the file with the read sequences
   string read_line;
@@ -175,36 +178,17 @@ void CompareRead16(char* read_file, char* reference_file, int shift, int thresho
     while(getline(file, read_line)) {
       if(read_line.size() > 2 && read_line[0] == '@') {
         char c = read_line[0];
+        string s = "";
         int cindex = 0;
         while(c != ' ') {
-          printf("%c", c);
+          s+=c;
           cindex++;
           c = read_line[cindex];
         }
-        printf("\t");
+        s+='\t';
 
         getline(file, read_line);
-        int j = 0;
-  
-        // Print the current read sequence
-        printf("%s\n", read_line.c_str());
-
-        // Convert the read into the 16 bit encodings
-        std::vector<unsigned short> readv(0);
-        std::vector<unsigned short> read_inverse(0);
-        int read_size = read_line.size();
-        for(; j < read_size-1; j++) {
-          readv.push_back(ConvertCharacters16(read_line[j], read_line[j+1]));
-          read_inverse.push_back(ConvertInverseCharacters16(read_line[read_size-(j+1)], read_line[read_size-(j+2)]));
-        }
-		
-        std::vector<long> v = compare16(&ref, readv, read_inverse, shift, threshold);
-            
-        // If a match or matches were found, print the entire string.
-        // Print total number of matches
-        if(report_total_matches)
-          printf("TOTAL MATCHES: %lu\n", v.size());
-        printf("\n");
+        p.push(read_compare_func, s, read_line, &ref, shift, threshold);
       }
     }
   }
@@ -212,13 +196,34 @@ void CompareRead16(char* read_file, char* reference_file, int shift, int thresho
     cerr << "Unable to open reference file \n";
     exit(1);
   }
+} 
+
+void read_compare_func(int id, string header, string read_line, vector<unsigned short> * ref, int shift, int threshold) {
+  int j = 0;
+  // Save read sequence
+  header += read_line + '\n';
+
+  std::vector<unsigned short> readv(0);
+  std::vector<unsigned short> read_inverse(0);
+  int read_size = read_line.size();
+  for(; j < read_size-1; j++) {
+    readv.push_back(ConvertCharacters16(read_line[j], read_line[j+1]));
+    read_inverse.push_back(ConvertInverseCharacters16(read_line[read_size-(j+1)], read_line[read_size-(j+2)]));
+  }
+
+  int num_matches = 0;
+  header += compare16(ref, readv, read_inverse, shift, threshold, &num_matches);
+
+  if(report_total_matches)
+    cout<<header<<"TOTAL MATCHES: " << num_matches << endl;
+  else
+    cout<<header<<endl;
 }
 
 void CompareRead4(char* read_file, char* reference_file, int shift, int threshold) {
   std::vector<unsigned char> ref(0);
   ref.reserve(2000000000);
   PrepareReference4(reference_file, &ref);
-  cout << "Reference Parsed\n";
   // Set up and read from the file with the read sequences
   string read_line;
   ifstream file(read_file);
@@ -231,7 +236,7 @@ void CompareRead4(char* read_file, char* reference_file, int shift, int threshol
         int j = 0;
 
         // Print the current read sequence
-        printf("%s\n", read_line.c_str());
+        cout<<read_line.c_str()<<endl;
 
         // Convert the read into the 16 bit encodings
         std::vector<unsigned char> readv(0);
@@ -247,7 +252,7 @@ void CompareRead4(char* read_file, char* reference_file, int shift, int threshol
         // Increment the total matches
 
         // Print total number of matches
-        printf("TOTAL MATCHES: %lu\n\n", v.size());
+        //cout<<"TOTAL MATCHES: %lu\n\n", v.size();
       }
       linec++;
     }

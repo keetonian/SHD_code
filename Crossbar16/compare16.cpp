@@ -1,7 +1,9 @@
 #include <vector>
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <iostream>
+#include <string>
+#include <sstream>
 using namespace std;
 
 /**
@@ -11,14 +13,17 @@ using namespace std;
  * shift: multiplex distance
  * threshold: minimum value allowed.
  */
-static std::vector<long> compare16(vector<unsigned short>* ref, vector<unsigned short> read_in, vector<unsigned short> inverse, int shift, int threshold) {
+static string compare16(vector<unsigned short>* ref, vector<unsigned short> read_in, vector<unsigned short> inverse, int shift, int threshold, int* num_matches) {
 
   // Compare the read against every spot in the reference
   // Return an array of locations in the reference that are viable
   // Alternatively could return an array of strings of viable comparison spots.
 
   // Set up space for results.
-  vector<long> results(0);
+  stringstream s;
+  //vector<long> results(0);
+  int matches = 0;
+
 
   // Set up variables
   int i = 0;
@@ -61,12 +66,8 @@ static std::vector<long> compare16(vector<unsigned short>* ref, vector<unsigned 
       unsigned short r = ref->at(k+i);
 
       // Do the comparison
-      if(!(a & r)){
-        error++;
-      }
-      if(!(b & r)) {
-        error_inv++;
-      }
+      error+=(!(a&r));
+      error_inv+=(!(b&r));
       if(error > threshold && error_inv > threshold) {
         break;
       }
@@ -75,7 +76,7 @@ static std::vector<long> compare16(vector<unsigned short>* ref, vector<unsigned 
     //If the result is over or equal to the threshold
     if(error <= threshold){
 			unsigned int kk = 0;
-			printf("%lu\tn\t%d\t", k, error);
+			s << k << "\tn\t" << error << '\t';
 			for(; kk < read_size; kk+=2) {
         unsigned short c1 = ref->at(k+kk);
         char c2 = 0x20;
@@ -99,15 +100,16 @@ static std::vector<long> compare16(vector<unsigned short>* ref, vector<unsigned 
           case 0x0001: c2 = 'G'; c3 = 'G'; break;
           default: c2 = ' '; c3 = ' '; break;
         }
-				printf("%c%c", c2, c3);
+				s << c2 << c3;
 			}
-			printf("\n");
-      results.push_back(k);
+			s<<"\n";
+      //results.push_back(k);
+      matches += 1;
 		}
 		
 		if(error_inv <= threshold){
 			unsigned int kk = 0;
-			printf("%lu\tri\t%d\t", k, error_inv);
+			s << k << "\tri\t" << error_inv << '\t';
 			for(; kk < read_size; kk+=2) {
         unsigned short c1 = ref->at(k+kk);
         char c2 = 0x20;
@@ -131,12 +133,15 @@ static std::vector<long> compare16(vector<unsigned short>* ref, vector<unsigned 
           case 0x0001: c2 = 'G'; c3 = 'G'; break;
           default: c2 = ' '; c3 = ' '; break;
         }
-				printf("%c%c", c2, c3);
+				s << c2 << c3;
 			}
-			printf("\n");
-      results.push_back(k);
+			s << "\n";
+      //results.push_back(k);
+      matches += 1;
 		}
   }
 
-  return results;
+  (*num_matches) = matches;
+
+  return s.str();
 }
