@@ -29,17 +29,17 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-  Authors: 
+Authors: 
   Farhad Hormozdiari
-	  farhadh AT uw DOT edu
+  farhadh AT uw DOT edu
   Faraz Hach
-	  fhach AT cs DOT sfu DOT ca
+  fhach AT cs DOT sfu DOT ca
   Can Alkan
-	  calkan AT gmail DOT com
+  calkan AT gmail DOT com
   Hongyi Xin
-	  gohongyi AT gmail DOT com
+  gohongyi AT gmail DOT com
   Donghyuk Lee
-	  bleups AT gmail DOT com
+  bleups AT gmail DOT com
 */
 
 
@@ -94,15 +94,15 @@ int toCompareRead(const void * elem1, const void * elem2)
 }
 /**********************************************/
 int readAllReads(char *fileName1,
-		 char *fileName2,
-		 int compressed,
-		 unsigned char *fastq,
-		 unsigned char pairedEnd,
-		 Read **seqList,
-		 unsigned int *seqListSize)
+    char *fileName2,
+    int compressed,
+    unsigned char *fastq,
+    unsigned char pairedEnd,
+    Read **seqList,
+    unsigned int *seqListSize)
 {
   double startTime=getTime();
-  
+
   char seq1[SEQ_MAX_LENGTH];
   char rseq1[SEQ_MAX_LENGTH];
   char name1[SEQ_MAX_LENGTH];
@@ -125,60 +125,60 @@ int readAllReads(char *fileName1,
   int clipped = 0;
 
   if (!compressed)
+  {
+    _r_fp1 = fileOpen( fileName1, "r");
+
+    if (_r_fp1 == NULL)
     {
-      _r_fp1 = fileOpen( fileName1, "r");
-
-      if (_r_fp1 == NULL)
-	{
-	  return 0;
-	}
-
-      ch = fgetc(_r_fp1);
-
-      if ( pairedEnd && fileName2 != NULL )
-	{
-	  _r_fp2 = fileOpen ( fileName2, "r" );
-	  if (_r_fp2 == NULL)
-	    {
-	      return 0;
-	    }
-	}
-      else
-	{
-	  _r_fp2 = _r_fp1;
-	}
-
-      readFirstSeq = &readFirstSeqTXT;
-      readSecondSeq = &readSecondSeqTXT;
+      return 0;
     }
+
+    ch = fgetc(_r_fp1);
+
+    if ( pairedEnd && fileName2 != NULL )
+    {
+      _r_fp2 = fileOpen ( fileName2, "r" );
+      if (_r_fp2 == NULL)
+      {
+        return 0;
+      }
+    }
+    else
+    {
+      _r_fp2 = _r_fp1;
+    }
+
+    readFirstSeq = &readFirstSeqTXT;
+    readSecondSeq = &readSecondSeqTXT;
+  }
   else
+  {
+
+    _r_gzfp1 = fileOpenGZ (fileName1, "r");
+
+    if (_r_gzfp1 == NULL)
     {
-
-      _r_gzfp1 = fileOpenGZ (fileName1, "r");
-
-      if (_r_gzfp1 == NULL)
-	{
-	  return 0;
-	}
-
-      ch = gzgetc(_r_gzfp1);
-
-      if ( pairedEnd && fileName2 != NULL )
-	{
-	  _r_gzfp2 = fileOpenGZ ( fileName2, "r" );
-	  if (_r_gzfp2 == NULL)
-	    {
-	      return 0;
-	    }
-	}
-      else
-	{
-	  _r_gzfp2 = _r_gzfp1;
-	}
-
-      readFirstSeq = &readFirstSeqGZ;
-      readSecondSeq = &readSecondSeqGZ;
+      return 0;
     }
+
+    ch = gzgetc(_r_gzfp1);
+
+    if ( pairedEnd && fileName2 != NULL )
+    {
+      _r_gzfp2 = fileOpenGZ ( fileName2, "r" );
+      if (_r_gzfp2 == NULL)
+      {
+        return 0;
+      }
+    }
+    else
+    {
+      _r_gzfp2 = _r_gzfp1;
+    }
+
+    readFirstSeq = &readFirstSeqGZ;
+    readSecondSeq = &readSecondSeqGZ;
+  }
 
   if (ch == '>')
     *fastq = 0;
@@ -189,31 +189,31 @@ int readAllReads(char *fileName1,
   while (readFirstSeq(dummy)) maxCnt++;
 
   if (!compressed)
-    {
-      rewind(_r_fp1);
-    }
+  {
+    rewind(_r_fp1);
+  }
   else
-    {
-      gzrewind(_r_gzfp1);
-    }
+  {
+    gzrewind(_r_gzfp1);
+  }
 
   // Calculating the Maximum # of sequences
   if (*fastq)
-    {
-      if (maxCnt % 4 != 0){
-        fprintf(stderr, "Input FASTQ file seems to be truncated. Number of lines: %d. Exiting.\n", maxCnt);
-	exit (1);
-      }
-      maxCnt /= 4;
+  {
+    if (maxCnt % 4 != 0){
+      fprintf(stderr, "Input FASTQ file seems to be truncated. Number of lines: %d. Exiting.\n", maxCnt);
+      exit (1);
     }
+    maxCnt /= 4;
+  }
   else
-    {
-      if (maxCnt % 2 != 0){
-        fprintf(stderr, "Input FASTQ file seems to be truncated. Number of lines: %d. Exiting.\n", maxCnt);
-	exit (1);
-      }
-      maxCnt /= 2;
+  {
+    if (maxCnt % 2 != 0){
+      fprintf(stderr, "Input FASTQ file seems to be truncated. Number of lines: %d. Exiting.\n", maxCnt);
+      exit (1);
     }
+    maxCnt /= 2;
+  }
 
   if (pairedEnd && fileName2 != NULL )
     maxCnt *= 2;
@@ -221,302 +221,302 @@ int readAllReads(char *fileName1,
   list = getMem(sizeof(Read)*maxCnt);
 
   while( readFirstSeq(name1) )
+  {
+    err1 = 0;
+    err2 = 0;
+    readFirstSeq(seq1);
+
+
+    name1[strlen(name1)-1] = '\0';
+    for (i=0; i<strlen(name1);i++)
     {
-      err1 = 0;
-      err2 = 0;
-      readFirstSeq(seq1);
-      
-      
-      name1[strlen(name1)-1] = '\0';
-      for (i=0; i<strlen(name1);i++)
-	{
-	  if (name1[i] == ' ')
-	    {
-	      name1[i] = '\0';
-	      break;
-	    }
-	  
-	}
-      
-      if (errThreshold == 255){
-	if (cropSize > 0) 
-	  {
-	    errThreshold = (int) ceil(cropSize * 0.04);
-	    fprintf(stderr, "Sequence length: %d bp. Error threshold is set to %d bp.\n", cropSize, errThreshold);
-	  }
-	else
-	  {
-	    errThreshold = (int) ceil((strlen(seq1)-1) * 0.04);
-	    fprintf(stderr, "Sequence length: %d bp. Error threshold is set to %d bp.\n", ((int)strlen(seq1)-1), errThreshold);
-	  }
-	fprintf(stderr, "You can override this value using the -e parameter.\n");
+      if (name1[i] == ' ')
+      {
+        name1[i] = '\0';
+        break;
       }
-	
-      
-      if ( *fastq )
-	{
-	  readFirstSeq(dummy);
-	  readFirstSeq(qual1);
-	  qual1[strlen(qual1)-1] = '\0';
-	}
+
+    }
+
+    if (errThreshold == 255){
+      if (cropSize > 0) 
+      {
+        errThreshold = (int) ceil(cropSize * 0.04);
+        fprintf(stderr, "Sequence length: %d bp. Error threshold is set to %d bp.\n", cropSize, errThreshold);
+      }
       else
-	{
-	  sprintf(qual1, "*");
-	}
-	
+      {
+        errThreshold = (int) ceil((strlen(seq1)-1) * 0.04);
+        fprintf(stderr, "Sequence length: %d bp. Error threshold is set to %d bp.\n", ((int)strlen(seq1)-1), errThreshold);
+      }
+      fprintf(stderr, "You can override this value using the -e parameter.\n");
+    }
+
+
+    if ( *fastq )
+    {
+      readFirstSeq(dummy);
+      readFirstSeq(qual1);
+      qual1[strlen(qual1)-1] = '\0';
+    }
+    else
+    {
+      sprintf(qual1, "*");
+    }
+
+    // Cropping
+    if (cropSize > 0)
+    {
+      seq1[cropSize] = '\0';
+      if ( *fastq )
+        qual1[cropSize] = '\0';
+    }
+
+
+    nCnt = 0;
+    for (i=0; i<strlen(seq1); i++)
+    {
+      seq1[i] = toupper (seq1[i]);
+      if (seq1[i] == 'N')
+      {
+        nCnt++;
+      }
+      else if (isspace(seq1[i]))
+      {
+
+        seq1[i] = '\0';
+        break;
+      }
+    }
+
+    if (nCnt > errThreshold)
+    {
+      err1 = 1;
+    }
+
+    // Reading the second seq of pair-ends
+    if (pairedEnd)
+    {
+      readSecondSeq(name2);
+      readSecondSeq(seq2);
+      name2[strlen(name2)-1] = '\0';
+      for (i=0; i<strlen(name2);i++)
+      {
+        if (name2[i] == ' ')
+        {
+          name2[i] = '\0';
+          break;
+        }
+
+      }
+
+      if ( *fastq )
+      {
+        readSecondSeq(dummy);
+        readSecondSeq(qual2);
+
+        qual2[strlen(qual2)-1] = '\0';
+      }
+      else
+      {
+        sprintf(qual2, "*");
+      }
+
+
       // Cropping
       if (cropSize > 0)
-	{
-	  seq1[cropSize] = '\0';
-	  if ( *fastq )
-	    qual1[cropSize] = '\0';
-	}
+      {
+        seq2[cropSize] = '\0';
+        if ( *fastq )
+          qual2[cropSize] = '\0';
+      }
 
 
       nCnt = 0;
-      for (i=0; i<strlen(seq1); i++)
-	{
-	  seq1[i] = toupper (seq1[i]);
-	  if (seq1[i] == 'N')
-	    {
-	      nCnt++;
-	    }
-	  else if (isspace(seq1[i]))
-	    {
+      for (i=0; i<strlen(seq2); i++)
+      {
+        seq2[i] = toupper (seq2[i]);
+        if (seq2[i] == 'N')
+        {
+          nCnt++;
 
-	      seq1[i] = '\0';
-	      break;
-	    }
-	}
-
+        }
+        else if (isspace(seq2[i]))
+        {
+          seq2[i] = '\0';
+        }
+      }
       if (nCnt > errThreshold)
-	{
-	  err1 = 1;
-	}
-
-      // Reading the second seq of pair-ends
-      if (pairedEnd)
-	{
-	  readSecondSeq(name2);
-	  readSecondSeq(seq2);
-	  name2[strlen(name2)-1] = '\0';
-	  for (i=0; i<strlen(name2);i++)
-	    {
-	      if (name2[i] == ' ')
-		{
-		  name2[i] = '\0';
-		  break;
-		}
-	      
-	    }
-	  
-	  if ( *fastq )
-	    {
-	      readSecondSeq(dummy);
-	      readSecondSeq(qual2);
-
-	      qual2[strlen(qual2)-1] = '\0';
-	    }
-	  else
-	    {
-	      sprintf(qual2, "*");
-	    }
-			
-			
-	  // Cropping
-	  if (cropSize > 0)
-	    {
-	      seq2[cropSize] = '\0';
-	      if ( *fastq )
-		qual2[cropSize] = '\0';
-	    }
+      {
+        err2 = 1;
+      }
 
 
-	  nCnt = 0;
-	  for (i=0; i<strlen(seq2); i++)
-	    {
-	      seq2[i] = toupper (seq2[i]);
-	      if (seq2[i] == 'N')
-		{
-		  nCnt++;
+      if (strlen(seq1) < strlen(seq2)) { 
+        seq2[strlen(seq1)] = '\0'; 
+        if ( *fastq )
+          qual2[strlen(seq1)] = '\0'; 
+        if (!clipped) clipped = 2; 
+      }
+      else if (strlen(seq1) > strlen(seq2)){
+        seq1[strlen(seq2)] = '\0';
+        if ( *fastq )
+          qual1[strlen(seq2)] = '\0';
+        if (!clipped) clipped = 1;
+      }
 
-		}
-	      else if (isspace(seq2[i]))
-		{
-		  seq2[i] = '\0';
-		}
-	    }
-	  if (nCnt > errThreshold)
-	    {
-	      err2 = 1;
-	    }
-
-
-	  if (strlen(seq1) < strlen(seq2)) { 
-	    seq2[strlen(seq1)] = '\0'; 
-	    if ( *fastq )
-	      qual2[strlen(seq1)] = '\0'; 
-	    if (!clipped) clipped = 2; 
-	  }
-	  else if (strlen(seq1) > strlen(seq2)){
-	    seq1[strlen(seq2)] = '\0';
-	    if ( *fastq )
-	      qual1[strlen(seq2)] = '\0';
-	    if (!clipped) clipped = 1;
-	  }
-
-	  if (clipped == 1 || clipped == 2){
-	    fprintf(stderr, "[PE mode Warning] Sequence lengths are different,  read #%d is clipped to match.\n", clipped);
-	    clipped = 3;
-	  }
-			
+      if (clipped == 1 || clipped == 2){
+        fprintf(stderr, "[PE mode Warning] Sequence lengths are different,  read #%d is clipped to match.\n", clipped);
+        clipped = 3;
+      }
 
 
-	}
 
-      if (!pairedEnd && !err1)
-	{
-	  int _mtmp = strlen(seq1);
-	  list[seqCnt].hits = getMem (1+3*_mtmp+3+strlen(name1)+1);
-	  list[seqCnt].seq  = list[seqCnt].hits + 1;
-	  list[seqCnt].rseq = list[seqCnt].seq + _mtmp+1;
-	  list[seqCnt].qual = list[seqCnt].rseq + _mtmp+1;
-	  list[seqCnt].name = list[seqCnt].qual + _mtmp+1;
-                        
-
-	  list[seqCnt].readNumber = seqCnt;			
-
-	  reverseComplement(seq1, rseq1, _mtmp);
-
-	  int i;
-
-	  list[seqCnt].hits[0] = 0;
-
-	  for (i=0; i<=_mtmp; i++)
-	    {
-	      list[seqCnt].seq[i] = seq1[i];
-	      list[seqCnt].rseq[i] = rseq1[i] ;
-	      list[seqCnt].qual[i] = qual1[i];
-	    }
-	  
-	  list[seqCnt].rseq[_mtmp]=list[seqCnt].qual[_mtmp]='\0';	
-	
-	  sprintf(list[seqCnt].name,"%s%c", ((char*)name1)+1,'\0');
-
-	  seqCnt++;
-
-	}
-      else if (pairedEnd && !err1 && !err2)
-	{
-
-	  // Naming Conventions X/1, X/2 OR X
-	  int tmplen = strlen(name1);
-	  if (strcmp(name1, name2) != 0)
-	    {
-	      tmplen = strlen(name1)-2;
-	    }
-		
-	  //first seq
-	  int _mtmp = strlen(seq1);
-	  list[seqCnt].hits = getMem (1+3*_mtmp+3+tmplen+1);
-	  list[seqCnt].seq = list[seqCnt].hits + 1;
-	  list[seqCnt].rseq = list[seqCnt].seq + _mtmp+1;
-	  list[seqCnt].qual = list[seqCnt].rseq + _mtmp+1;
-	  list[seqCnt].name = list[seqCnt].qual + _mtmp+1;
-
-	  list[seqCnt].readNumber = seqCnt;
-
-	  reverseComplement(seq1, rseq1, _mtmp);
-
-	  int i;
-
-	  list[seqCnt].hits[0] = 0;
-
-	  for (i=0; i<=_mtmp; i++)
-	    {
-	      list[seqCnt].seq[i] = seq1[i];
-	      list[seqCnt].rseq[i] = rseq1[i] ;
-	      list[seqCnt].qual[i] = qual1[i];
-	    }
-
-
-	  name1[tmplen]='\0';
-	  list[seqCnt].rseq[_mtmp]=list[seqCnt].qual[_mtmp]='\0';
-
-	  sprintf(list[seqCnt].name,"%s%c", ((char*)name1)+1,'\0');
-
-	  seqCnt++;
-
-	  //second seq
-	  list[seqCnt].hits = getMem (1+3*_mtmp+3+tmplen+1);
-	  list[seqCnt].seq = list[seqCnt].hits + 1;
-	  list[seqCnt].rseq = list[seqCnt].seq + _mtmp+1;
-	  list[seqCnt].qual = list[seqCnt].rseq + _mtmp+1;
-	  list[seqCnt].name = list[seqCnt].qual + _mtmp+1;
-
-	  list[seqCnt].readNumber = seqCnt;
-
-	  reverseComplement(seq2, rseq2, _mtmp);
-	  //rseq2[_mtmp] =  '\0';
-
-	  list[seqCnt].hits[0] = 0;
-
-	  for (i=0; i<=_mtmp; i++)
-	    {
-	      list[seqCnt].seq[i] = seq2[i];
-	      list[seqCnt].rseq[i] = rseq2[i] ;
-	      list[seqCnt].qual[i] = qual2[i];
-	    }
-
-
-	  name2[tmplen]='\0';
-	  list[seqCnt].rseq[_mtmp]=list[seqCnt].qual[_mtmp]='\0';
-
-	  sprintf(list[seqCnt].name,"%s%c", ((char*)name2)+1,'\0');
-
-	  seqCnt++;
-
-	}
-      else
-	{
-	  discarded++;
-	}
     }
+
+    if (!pairedEnd && !err1)
+    {
+      int _mtmp = strlen(seq1);
+      list[seqCnt].hits = getMem (1+3*_mtmp+3+strlen(name1)+1);
+      list[seqCnt].seq  = list[seqCnt].hits + 1;
+      list[seqCnt].rseq = list[seqCnt].seq + _mtmp+1;
+      list[seqCnt].qual = list[seqCnt].rseq + _mtmp+1;
+      list[seqCnt].name = list[seqCnt].qual + _mtmp+1;
+
+
+      list[seqCnt].readNumber = seqCnt;			
+
+      reverseComplement(seq1, rseq1, _mtmp);
+
+      int i;
+
+      list[seqCnt].hits[0] = 0;
+
+      for (i=0; i<=_mtmp; i++)
+      {
+        list[seqCnt].seq[i] = seq1[i];
+        list[seqCnt].rseq[i] = rseq1[i] ;
+        list[seqCnt].qual[i] = qual1[i];
+      }
+
+      list[seqCnt].rseq[_mtmp]=list[seqCnt].qual[_mtmp]='\0';	
+
+      sprintf(list[seqCnt].name,"%s%c", ((char*)name1)+1,'\0');
+
+      seqCnt++;
+
+    }
+    else if (pairedEnd && !err1 && !err2)
+    {
+
+      // Naming Conventions X/1, X/2 OR X
+      int tmplen = strlen(name1);
+      if (strcmp(name1, name2) != 0)
+      {
+        tmplen = strlen(name1)-2;
+      }
+
+      //first seq
+      int _mtmp = strlen(seq1);
+      list[seqCnt].hits = getMem (1+3*_mtmp+3+tmplen+1);
+      list[seqCnt].seq = list[seqCnt].hits + 1;
+      list[seqCnt].rseq = list[seqCnt].seq + _mtmp+1;
+      list[seqCnt].qual = list[seqCnt].rseq + _mtmp+1;
+      list[seqCnt].name = list[seqCnt].qual + _mtmp+1;
+
+      list[seqCnt].readNumber = seqCnt;
+
+      reverseComplement(seq1, rseq1, _mtmp);
+
+      int i;
+
+      list[seqCnt].hits[0] = 0;
+
+      for (i=0; i<=_mtmp; i++)
+      {
+        list[seqCnt].seq[i] = seq1[i];
+        list[seqCnt].rseq[i] = rseq1[i] ;
+        list[seqCnt].qual[i] = qual1[i];
+      }
+
+
+      name1[tmplen]='\0';
+      list[seqCnt].rseq[_mtmp]=list[seqCnt].qual[_mtmp]='\0';
+
+      sprintf(list[seqCnt].name,"%s%c", ((char*)name1)+1,'\0');
+
+      seqCnt++;
+
+      //second seq
+      list[seqCnt].hits = getMem (1+3*_mtmp+3+tmplen+1);
+      list[seqCnt].seq = list[seqCnt].hits + 1;
+      list[seqCnt].rseq = list[seqCnt].seq + _mtmp+1;
+      list[seqCnt].qual = list[seqCnt].rseq + _mtmp+1;
+      list[seqCnt].name = list[seqCnt].qual + _mtmp+1;
+
+      list[seqCnt].readNumber = seqCnt;
+
+      reverseComplement(seq2, rseq2, _mtmp);
+      //rseq2[_mtmp] =  '\0';
+
+      list[seqCnt].hits[0] = 0;
+
+      for (i=0; i<=_mtmp; i++)
+      {
+        list[seqCnt].seq[i] = seq2[i];
+        list[seqCnt].rseq[i] = rseq2[i] ;
+        list[seqCnt].qual[i] = qual2[i];
+      }
+
+
+      name2[tmplen]='\0';
+      list[seqCnt].rseq[_mtmp]=list[seqCnt].qual[_mtmp]='\0';
+
+      sprintf(list[seqCnt].name,"%s%c", ((char*)name2)+1,'\0');
+
+      seqCnt++;
+
+    }
+    else
+    {
+      discarded++;
+    }
+  }
 
   if (seqCnt > 0)
-    {
-      SEQ_LENGTH = strlen(list[0].seq);
-    }
+  {
+    SEQ_LENGTH = strlen(list[0].seq);
+  }
   else
-    {
-      fprintf(stderr, "ERROR: No reads can be found for mapping\n");
-      return 0;
-    }
+  {
+    fprintf(stderr, "ERROR: No reads can be found for mapping\n");
+    return 0;
+  }
 
 
   // Closing Files
   if (!compressed)
+  {
+    fclose(_r_fp1);
+    if ( pairedEnd && fileName2 != NULL )
     {
-      fclose(_r_fp1);
-      if ( pairedEnd && fileName2 != NULL )
-	{
-	  fclose(_r_fp2);
-	}
+      fclose(_r_fp2);
     }
+  }
   else
+  {
+    gzclose(_r_gzfp1);
+    if ( pairedEnd && fileName2 != NULL)
     {
-      gzclose(_r_gzfp1);
-      if ( pairedEnd && fileName2 != NULL)
-	{
-	  gzclose(_r_gzfp2);
-	}
+      gzclose(_r_gzfp2);
     }
+  }
 
   adjustQual(list, seqCnt);
 
   *seqList = list;
   *seqListSize = seqCnt;
-	
+
 
   _r_seq = list;
   _r_seqCnt = seqCnt;
@@ -540,11 +540,11 @@ void loadSamplingLocations(int **samplingLocs, int * samplingLocsSize)
   int *samLocs = getMem(sizeof(int)*samLocsSize);
 
   for (i=0; i<samLocsSize; i++)
-    {
-      samLocs[i] = (SEQ_LENGTH / samLocsSize) *i;
-      if ( samLocs[i] + WINDOW_SIZE > SEQ_LENGTH)
-	samLocs[i] = SEQ_LENGTH - WINDOW_SIZE;
-    }
+  {
+    samLocs[i] = (SEQ_LENGTH / samLocsSize) *i;
+    if ( samLocs[i] + WINDOW_SIZE > SEQ_LENGTH)
+      samLocs[i] = SEQ_LENGTH - WINDOW_SIZE;
+  }
   *samplingLocs = samLocs;
   *samplingLocsSize = samLocsSize;
   _r_samplingLocs = samLocs;
@@ -555,41 +555,41 @@ void finalizeReads(char *fileName)
   FILE *fp1=NULL;
 
   if (fileName != NULL)
-    {
-      fp1 = fileOpen(fileName, "w");
-    }
+  {
+    fp1 = fileOpen(fileName, "w");
+  }
   if (pairedEndMode)
     _r_seqCnt /=2;
 
   int i=0;
   for (i = 0; i < _r_seqCnt; i++)
+  {
+    if (pairedEndMode && _r_seq[2*i].hits[0] == 0 && _r_seq[2*i+1].hits[0] == 0  &&  strcmp(_r_seq[2*i].qual,"*")!=0)
     {
-      if (pairedEndMode && _r_seq[2*i].hits[0] == 0 && _r_seq[2*i+1].hits[0] == 0  &&  strcmp(_r_seq[2*i].qual,"*")!=0)
-	{
-	  fprintf(fp1,"@%s/1\n%s\n+\n%s\n@%s/2\n%s\n+\n%s\n", _r_seq[i*2].name, _r_seq[i*2].seq, _r_seq[i*2].qual, _r_seq[i*2].name, _r_seq[i*2+1].seq, _r_seq[i*2+1].qual);
-	}
-      else if (pairedEndMode && _r_seq[2*i].hits[0] == 0 && _r_seq[2*i+1].hits[0] == 0)
-	{
-	  fprintf(fp1, ">%s/1\n%s\n>%s/2\n%shits=%d\n", _r_seq[i*2].name, _r_seq[i*2].seq, _r_seq[i*2].name, _r_seq[i*2+1].seq, _r_seq[2*i+1].hits[0]);
-	}
-      else if (!pairedEndMode && _r_seq[i].hits[0] == 0 && strcmp(_r_seq[i].qual, "*")!=0)
-	{
-	  fprintf(fp1,"@%s\n%s\n+\n%s\n", _r_seq[i].name, _r_seq[i].seq, _r_seq[i].qual);
-	}
-      else if (!pairedEndMode && _r_seq[i].hits[0] == 0)
-	{
-	  fprintf(fp1,">%s\n%s\n", _r_seq[i].name, _r_seq[i].seq);
-	}
+      fprintf(fp1,"@%s/1\n%s\n+\n%s\n@%s/2\n%s\n+\n%s\n", _r_seq[i*2].name, _r_seq[i*2].seq, _r_seq[i*2].qual, _r_seq[i*2].name, _r_seq[i*2+1].seq, _r_seq[i*2+1].qual);
     }
+    else if (pairedEndMode && _r_seq[2*i].hits[0] == 0 && _r_seq[2*i+1].hits[0] == 0)
+    {
+      fprintf(fp1, ">%s/1\n%s\n>%s/2\n%shits=%d\n", _r_seq[i*2].name, _r_seq[i*2].seq, _r_seq[i*2].name, _r_seq[i*2+1].seq, _r_seq[2*i+1].hits[0]);
+    }
+    else if (!pairedEndMode && _r_seq[i].hits[0] == 0 && strcmp(_r_seq[i].qual, "*")!=0)
+    {
+      fprintf(fp1,"@%s\n%s\n+\n%s\n", _r_seq[i].name, _r_seq[i].seq, _r_seq[i].qual);
+    }
+    else if (!pairedEndMode && _r_seq[i].hits[0] == 0)
+    {
+      fprintf(fp1,">%s\n%s\n", _r_seq[i].name, _r_seq[i].seq);
+    }
+  }
 
   fclose(fp1);
   if (pairedEndMode)
     _r_seqCnt *= 2;
 
   for (i = 0; i < _r_seqCnt; i++)
-    {
-      freeMem(_r_seq[i].hits,0);
-    }
+  {
+    freeMem(_r_seq[i].hits,0);
+  }
 
 
   freeMem(_r_seq,0);
@@ -600,25 +600,25 @@ void adjustQual(Read *list, int seqCnt){
   /* This function will automatically determine the phred_offset and readjust quality values if needed */
   int i,j,q, offset=64;
   int len = strlen(list[0].qual);
-  
+
   for (i=0; i<10000 && i<seqCnt; i++){
     for (j=0;j<len;j++){
       q = (int) list[i].qual[j] - offset;
       if (q < 0){
-	offset = 33;
-	break;
+        offset = 33;
+        break;
       }
     }
     if (offset == 33)
       break;
   }
-  
+
   if (offset == 64){
     fprintf(stderr, "[Quality Warning] Phred offset is 64. Readjusting to 33.\n");
     fflush(stderr);
     for (i=0;i<seqCnt;i++){
       for (j=0;j<len;j++){
-	list[i].qual[j] -= 31;
+        list[i].qual[j] -= 31;
       }
     }
   }

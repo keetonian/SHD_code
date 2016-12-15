@@ -59,6 +59,13 @@
 #include "MrFAST.h"
 #include "RefGenome.h"
 
+#include "../SHD/print.h"
+#include "../SHD/popcount.h"
+#include "../SHD/mask.h"
+#include "../SHD/bit_convert.h"
+#include "../SHD/vector_filter.h"
+
+
 #define min(a,b) ((a)>(b)?(b):(a))
 #define min3(a,b,c) ((a)>(b)?(b>c?c:b):(a>c?c:a))
 #define CHARCODE(a) (a=='A' ? 0 : (a=='C' ? 1 : (a=='G' ? 2 : (a=='T' ? 3 : 4))))

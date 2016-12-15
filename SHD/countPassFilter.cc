@@ -1,150 +1,101 @@
-/*
- * vector_filterMain.c
- *
- *  Created on: Nov 12, 2013
- *      Author: hxin
- */
-
-//#ifndef BOOST_PP_IS_ITERATING
-//#include "print.h"
-#include <string>
-#include <sys/times.h>
-#include <unistd.h>
-#include <stdint.h>
-#include "vector_filter.h"
+#include <iostream>
 #include <stdio.h>
-#include <stdlib.h>
+#include <fstream>
+#include <vector>
+#include <string>
 #include <string.h>
-
-#define BATCH_RUN 1000000 
+#include <stdlib.h>
+#include "vector_filter.h"
 
 using namespace std;
+void helper_func(int id, vector<char> * ref, string line, string header, int error);
 
-#include "mask.h"
 
-//char read[128];
-//char ref[128];
+int main(int argc, char** argv) {
+  if(argc != 4){
+    cout<<"Usage: ./prepareinput <error> <read_file> <mrfast_file>"<<endl;
+    cerr<<"Wrong number of arguments"<<endl;
+    return 0;
+  }
 
-char init_all_NULL[128] = "";
+  //TODO: use a read file with mrfast file
 
-char read_t[128] __aligned__;// = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-char ref_t[128] __aligned__;// = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+  int error = atoi(argv[1]);
+  char* ref_file = argv[2];
+  char* read_file = argv[3];
 
-int main(int argc, char* argv[]) {
-	
-	string *read_strs = new string [BATCH_RUN];
-	string *ref_strs = new string [BATCH_RUN];
-	bool *valid_buff = new bool [BATCH_RUN];
+  vector<char> ref(0);
+  ref.reserve(32000);
 
-	if (argc != 2) {
-		printf("Usage: $>bin error\n");
-		exit(1);
-	}
+  string line;
+  ifstream reference(ref_file);
+  if(reference.is_open()) {
+    while(getline(reference, line)) {
+      if(line.size() == 0)
+        continue;
+      if(line[0] != '>') {
+        int i = 0;
+        for(; i < line.size(); i++) {
+          ref.push_back(line[i]);
+        }
+      }
+    }
+    reference.close();
+  }
+  else {
+    cerr << "Unable to open reference file" << endl;
+    exit(1);
+  }
 
-	int error = atoi(argv[1]);
-
-	size_t lineLength;	
-	size_t length;
-	char* tempstr = NULL;
-
-	long long unsigned int passNum = 0;
-	long long unsigned int totalNum = 0;
-
-	long long read_size;
-	long long read_idx;
-	bool stop = false;
-
-	tms start_time;
-	tms end_time;
-	tms elp_time;
-
-	elp_time.tms_stime = 0;
-	elp_time.tms_utime = 0;
-	elp_time.tms_cstime = 0;
-	elp_time.tms_cutime = 0;
-
-	do {
-		//clear past result
-//		strncpy(read, init_all_NULL, 128);
-//		strncpy(ref, init_all_NULL, 128);
-		
-		for (read_size = 0; read_size < BATCH_RUN; read_size++) {
-			
-			//get read
-			getline(&tempstr, &lineLength, stdin);
-			length = strlen(tempstr);
-			//Get rid of the new line character
-			tempstr[length - 1] = '\0';
-			
-			if (strcmp(tempstr, "end_of_file\0") == 0) {
-				stop = true;
-				break;
-			}
-			read_strs[read_size].assign(tempstr);
-
-			//get ref
-			getline(&tempstr, &lineLength, stdin);
-			length = strlen(tempstr);
-			//Get rid of the new line character
-			tempstr[length - 1] = '\0';
-			ref_strs[read_size].assign(tempstr);
-			valid_buff[read_size] = false;
-		}
-
-		times(&start_time);
-
-		for (read_idx = 0; read_idx < read_size; read_idx++) {
-			
-			strncpy(read_t, init_all_NULL, 128);
-			strncpy(ref_t, init_all_NULL, 128);
-
-			length = read_strs[read_idx].length();
-
-			if (length > 128)
-				length = 128;
-			strncpy(read_t, read_strs[read_idx].c_str(), length);
-
-			length = ref_strs[read_idx].length();
-			//Get rid of the new line character
-			if (length > 128)
-				length = 128;
-			strncpy(ref_t, ref_strs[read_idx].c_str(), length);
-
-			if (bit_vec_filter_sse1(read_t, ref_t, length, error))
-				valid_buff[read_idx] = true;
-		}
-
-		times(&end_time);
-
-		for (read_idx = 0; read_idx < read_size; read_idx++) {
-
-			if (valid_buff[read_idx]) {
-				fprintf(stderr, "%.*s\n", 128, read_strs[read_idx].c_str() );
-				fprintf(stderr, "%.*s\n", 128, ref_strs[read_idx].c_str() );
-				passNum++;
-			}
-			totalNum++;
-		}
-
-		
-		elp_time.tms_stime += end_time.tms_stime - start_time.tms_stime;
-		elp_time.tms_utime += end_time.tms_utime - start_time.tms_utime;
-
-		if (stop)
-			break;
-
-	} while (1);
-
-	fprintf(stderr, "end_of_file\n");
-	printf("passNum:\t%lld\n", passNum);
-	printf("totalNum:\t%lld\n", totalNum);
-	printf("total_time: %f\n", (double) elp_time.tms_utime / sysconf(_SC_CLK_TCK) ); 
-
-	delete [] read_strs;
-	delete [] ref_strs;
-
-	return 0;
-
+  long ref_size = ref.size();
+  ifstream read(read_file);
+  if(read.is_open()) {
+    while(getline(read, line)) {
+      if(line.size() > 2 && line[0] == '@' && line[1] == 'E') {
+        char c = line[0];
+        string s = "";
+        int cindex = 0;
+        while(c != ' ') {
+          s += c;
+          cindex++;
+          c = line[cindex];
+        }
+        getline(read, line);
+        helper_func(1, &ref, line, s, error);
+        //p.push(helper_func, &ref, line, s, error);
+      }
+    }
+    read.close();
+  }
+  else {
+    cerr<<"Error in reading read file"<<endl;
+  }
+  return 0;
 }
 
-//#endif
+
+void helper_func(int id, vector<char> * ref, string line, string header, int error) {
+
+  char read_t[128] __aligned__;
+  char ref_t[128] __aligned__;
+  char init_all_NULL[128] = "";
+  strncpy(read_t, init_all_NULL, 128);
+  strncpy(ref_t, init_all_NULL, 128);
+
+  long ref_size = ref->size();
+  header += line + '\n';
+  int read_size = line.size();
+  strncpy(read_t, line.c_str(), read_size);
+  long i = 0;
+  for(; i < ref_size-(read_size+1); i++) {
+    //cout << line << endl;
+    for(int j = 0; j < read_size; j++) {
+      ref_t[j] = ref->at(i+j);
+    }
+    ref_t[read_size] = '\0';
+    if(bit_vec_filter_sse1(read_t, ref_t, read_size, error)) {
+      header += to_string(i) + '\n';
+    }
+  }
+  cout << header << endl;
+}

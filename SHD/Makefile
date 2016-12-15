@@ -6,7 +6,7 @@ LD = ld
 
 LDFLAGS = -r
 
-CFLAGS = -O3 -msse4.2 -I . -I/usr/local/boost_1_62_0	
+CFLAGS = -O3 -msse4.2 -I . -I/usr/local/boost_1_62_0 -std=c++11 -pthread -lpthread	
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
 endif
