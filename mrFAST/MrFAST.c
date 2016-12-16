@@ -1669,7 +1669,97 @@ int verifySingleEndEditDistanceExtension(int refIndex, char *lSeq,
   if (error2 + error3 > errThreshold)
     return -1;
 
+rIndex = 1;
 
+  //int prevError = 0;
+
+  int tempUp = 0;
+  int tempDown = 0;
+
+  int errorString = 0;
+
+  int upValue;
+  int diagValue;
+  int sideValue;
+  if (lSeqLength > ERROR_BOUND) {
+    while (rIndex <= lSeqLength + ERROR_BOUND && lSeqLength != 0) {
+      tempUp = (
+		(rIndex - ERROR_BOUND) > 0 ?
+		((rIndex > lSeqLength) ?
+		 lSeqLength - ERROR_BOUND :
+		 rIndex - ERROR_BOUND) :
+		1);
+      tempDown = (
+		  (rIndex >= lSeqLength - ERROR_BOUND) ?
+		  lSeqLength + 1 : rIndex + ERROR_BOUND + 1);
+      for (i = tempUp; i < tempDown; i++) {
+	errorString = (*(ref - rIndex) == *(lSeq + lSeqLength - i));
+
+	upValue = scoreB[i - 1][rIndex] + 1;
+	diagValue = scoreB[i - 1][rIndex - 1] + !errorString;
+	sideValue = scoreB[i][rIndex - 1] + 1;
+
+	if (i != tempUp && i != tempDown - 1)
+	  scoreB[i][rIndex] = min3(sideValue, diagValue , upValue);
+
+	else if ((i
+		  == ((rIndex - ERROR_BOUND) > 0 ?
+		      rIndex - ERROR_BOUND : 1))
+		 && rIndex <= lSeqLength)
+	  scoreB[i][rIndex] = min(sideValue, diagValue);
+	else if (rIndex > lSeqLength && (i == lSeqLength - ERROR_BOUND))
+	  scoreB[i][rIndex] = sideValue;
+	else
+	  scoreB[i][rIndex] = min(diagValue , upValue);
+
+	if (i == tempUp)
+	  error = scoreB[i][rIndex];
+	else if (error > scoreB[i][rIndex])
+	  error = scoreB[i][rIndex];
+      }
+      if (rIndex <= lSeqLength) {
+	//errorSegment = error-prevError;
+      }
+      rIndex++;
+    }
+
+    if (lSeqLength != 0) {
+      min = scoreB[lSeqLength][lSeqLength + ERROR_BOUND];
+      minIndex1 = lSeqLength + ERROR_BOUND;
+
+      // Find the Best error for all the possible ways.
+      for (i = 1; i <= 2 * ERROR_BOUND; i++) {
+	if (min >= scoreB[lSeqLength][lSeqLength + ERROR_BOUND - i]
+	    && lSeqLength + ERROR_BOUND - i > 0) {
+	  min = scoreB[lSeqLength][lSeqLength + ERROR_BOUND - i];
+	  minIndex1 = lSeqLength + ERROR_BOUND - i;
+	}
+      }
+      error = scoreB[lSeqLength][minIndex1];
+    }
+  } else {
+    int j = 0;
+    for (i = 1; i <= lSeqLength; i++) {
+      for (j = 1; j <= lSeqLength; j++) {
+	scoreB[i][j] =
+	  min3(scoreB[i-1][j-1]+ (*(ref-j) != *(lSeq+lSeqLength-i) ),scoreB[i][j-1]+1 ,scoreB[i-1][j]+1);
+      }
+    }
+    error = scoreB[lSeqLength][lSeqLength];
+    minIndex1 = lSeqLength;
+
+  }
+  error1 = error;
+
+  error = 0;
+  //errorSegment = 0;
+
+  directionIndex = lSeqLength;
+  rIndex = minIndex1;
+
+  *map_location = ((lSeqLength == 0) ? refIndex : refIndex - rIndex);
+
+  ref = ref + segLength;
   *map_location = ((lSeqLength == 0) ? refIndex : refIndex - rIndex);
 
   char read_t[128] __aligned__;
