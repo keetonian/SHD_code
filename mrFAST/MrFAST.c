@@ -29,17 +29,17 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-  Authors: 
-  Farhad Hormozdiari
-	  farhadh AT uw DOT edu
-  Faraz Hach
-	  fhach AT cs DOT sfu DOT ca
-  Can Alkan
-	  calkan AT gmail DOT com
-  Hongyi Xin
-	  gohongyi AT gmail DOT com
-  Donghyuk Lee
-	  bleups AT gmail DOT com
+Authors: 
+Farhad Hormozdiari
+farhadh AT uw DOT edu
+Faraz Hach
+fhach AT cs DOT sfu DOT ca
+Can Alkan
+calkan AT gmail DOT com
+Hongyi Xin
+gohongyi AT gmail DOT com
+Donghyuk Lee
+bleups AT gmail DOT com
 */
 
 
@@ -59,12 +59,11 @@
 #include "MrFAST.h"
 #include "RefGenome.h"
 
-#include "../SHD/print.h"
-#include "../SHD/popcount.h"
-#include "../SHD/mask.h"
-#include "../SHD/bit_convert.h"
-#include "../SHD/vector_filter.h"
-
+#include "print.h"
+#include "popcount.h"
+#include "mask.h"
+#include "bit_convert.h"
+#include "vector_filter.h"
 
 #define min(a,b) ((a)>(b)?(b):(a))
 #define min3(a,b,c) ((a)>(b)?(b>c?c:b):(a>c?c:a))
@@ -150,22 +149,22 @@ int smallEditDistanceF(char *a, int lena, char *b, int lenb)
   int j = 0;
 
   for(i = 0; i <= lena; i++)
-    {
-      matrix[0][i] = i;
-    }
+  {
+    matrix[0][i] = i;
+  }
 
   for(i = 0; i <= lenb; i++)
-    {
-      matrix[i][0] = i;
-    }
+  {
+    matrix[i][0] = i;
+  }
 
   for(i = 1; i <= lenb; i++)
+  {
+    for(j = 1; j <= lena; j++)
     {
-      for(j = 1; j <= lena; j++)
-	{
-	  matrix[i][j] = min3(matrix[i-1][j-1]+ (a[j-1] != b[i-1]),matrix[i][j-1]+1 ,matrix[i-1][j]+1);
-	}
+      matrix[i][j] = min3(matrix[i-1][j-1]+ (a[j-1] != b[i-1]),matrix[i][j-1]+1 ,matrix[i-1][j]+1);
     }
+  }
   return (matrix[lenb][lena] > errThreshold ? -1 : matrix[lenb][lena]);
 }
 
@@ -176,22 +175,22 @@ int smallEditDistanceB(char *a, int lena, char *b, int lenb)
   int j = 0;
 
   for(i = 0; i <= lena; i++)
-    {
-      matrix[0][i] = i;
-    }
+  {
+    matrix[0][i] = i;
+  }
 
   for(i = 0; i <= lenb; i++)
-    {
-      matrix[i][0] = i;
-    }
+  {
+    matrix[i][0] = i;
+  }
 
   for(i = 1; i <= lenb; i++)
+  {
+    for(j = 1; j <= lena; j++)
     {
-      for(j = 1; j <= lena; j++)
-	{
-	  matrix[i][j] = min3(matrix[i-1][j-1]+ (*(a-j+1) != *(b-i+1)),matrix[i][j-1]+1 ,matrix[i-1][j]+1);
-	}
+      matrix[i][j] = min3(matrix[i-1][j-1]+ (*(a-j+1) != *(b-i+1)),matrix[i][j-1]+1 ,matrix[i-1][j]+1);
     }
+  }
 
   return (matrix[lenb][lena] > errThreshold ? -1 : matrix[lenb][lena]);
 }
@@ -211,22 +210,22 @@ void initLookUpTable()
   MASK = _mm_insert_epi16(MASK,0,7);
 
   for(i = 0; i < errThreshold + 1; i++)
-    {
-      scoreF[0][i] = i;
-      scoreF[i][0] = i;
-    }
+  {
+    scoreF[0][i] = i;
+    scoreF[i][0] = i;
+  }
 
   for(i = 0 ; i < errThreshold + 1; i++)
-    {
-      scoreB[0][i] = i;
-      scoreB[i][0] = i;
-    }
+  {
+    scoreB[0][i] = i;
+    scoreB[i][0] = i;
+  }
 
 }
 
 
 inline int backwardEditDistanceSSE2Extension(char *a, int lena, char *b,
-					     int lenb) {
+    int lenb) {
   if (lenb == 0 || lena == 0)
     return 0;
 
@@ -358,21 +357,21 @@ inline int backwardEditDistanceSSE2Extension(char *a, int lena, char *b,
       R0 = _mm_min_epi16(R0, _mm_add_epi16(_mm_slli_si128(R1,2) ,Down2));
 
       if (_mm_extract_epi16(R0, 0) > errThreshold
-	  && _mm_extract_epi16(R0, 1) > errThreshold
-	  && _mm_extract_epi16(R0, 2) > errThreshold
-	  && _mm_extract_epi16(R0, 3) > errThreshold
-	  && _mm_extract_epi16(R0, 4) > errThreshold
-	  && _mm_extract_epi16(R1, 0) > errThreshold
-	  && _mm_extract_epi16(R1, 1) > errThreshold
-	  && _mm_extract_epi16(R1, 2) > errThreshold
-	  && _mm_extract_epi16(R1, 3) > errThreshold)
-	return -1;
+          && _mm_extract_epi16(R0, 1) > errThreshold
+          && _mm_extract_epi16(R0, 2) > errThreshold
+          && _mm_extract_epi16(R0, 3) > errThreshold
+          && _mm_extract_epi16(R0, 4) > errThreshold
+          && _mm_extract_epi16(R1, 0) > errThreshold
+          && _mm_extract_epi16(R1, 1) > errThreshold
+          && _mm_extract_epi16(R1, 2) > errThreshold
+          && _mm_extract_epi16(R1, 3) > errThreshold)
+        return -1;
 
       if (i == 2 * lenb - e) {
-	tmp = _mm_srli_si128(R0,2);
-	for (k = 0; k < e - 1; k++)
-	  tmp = _mm_srli_si128(tmp,2);
-	minError = _mm_extract_epi16(tmp,0);
+        tmp = _mm_srli_si128(R0,2);
+        for (k = 0; k < e - 1; k++)
+          tmp = _mm_srli_si128(tmp,2);
+        minError = _mm_extract_epi16(tmp,0);
       }
 
     }
@@ -385,10 +384,10 @@ inline int backwardEditDistanceSSE2Extension(char *a, int lena, char *b,
       R1 = _mm_min_epi16(R1, _mm_add_epi16(R0 ,Down1));
 
       if (i >= 2 * lenb - e) {
-	tmp = _mm_srli_si128(R1,2);
-	for (k = 0; k < e - 2; k++)
-	  tmp = _mm_srli_si128(tmp,2);
-	minError = min(minError, _mm_extract_epi16(tmp,0));
+        tmp = _mm_srli_si128(R1,2);
+        for (k = 0; k < e - 2; k++)
+          tmp = _mm_srli_si128(tmp,2);
+        minError = min(minError, _mm_extract_epi16(tmp,0));
       }
     }
 
@@ -402,9 +401,9 @@ inline int backwardEditDistanceSSE2Extension(char *a, int lena, char *b,
     //set the first element
     if (j == 0) {
       for (k = 0; k <= e - 1; k++) {
-	Diag = _mm_slli_si128(Diag, 2);
-	Diag =
-	  _mm_insert_epi16(Diag, *(b-(lenb-1-k)) != *(a-((i-lenb)-1+k)),0);
+        Diag = _mm_slli_si128(Diag, 2);
+        Diag =
+          _mm_insert_epi16(Diag, *(b-(lenb-1-k)) != *(a-((i-lenb)-1+k)),0);
       }
 
       R0 = _mm_min_epi16(_mm_add_epi16(R1,Side2), _mm_add_epi16(R0,Diag));
@@ -414,13 +413,13 @@ inline int backwardEditDistanceSSE2Extension(char *a, int lena, char *b,
 
       tmp = _mm_srli_si128(R0,2);
       for (k = 0; k < e - 2; k++)
-	tmp = _mm_srli_si128(tmp,2);
+        tmp = _mm_srli_si128(tmp,2);
       minError = min(minError, _mm_extract_epi16(tmp,0));
     } else if (j % 2 == 0) {
       for (k = 0; k < tmpE; k++) {
-	Diag = _mm_slli_si128(Diag, 2);
-	Diag =
-	  _mm_insert_epi16(Diag, *(b-(lenb-1-k)) != *(a-((i-lenb)-1+k)),0);
+        Diag = _mm_slli_si128(Diag, 2);
+        Diag =
+          _mm_insert_epi16(Diag, *(b-(lenb-1-k)) != *(a-((i-lenb)-1+k)),0);
       }
 
       R0 = _mm_min_epi16(_mm_add_epi16(R1,Side2), _mm_add_epi16(R0,Diag));
@@ -430,15 +429,15 @@ inline int backwardEditDistanceSSE2Extension(char *a, int lena, char *b,
 
       tmp = _mm_srli_si128(R0,2);
       for (k = 0; k < tmpE - 1; k++)
-	tmp = _mm_srli_si128(tmp,2);
+        tmp = _mm_srli_si128(tmp,2);
       minError = min(minError, _mm_extract_epi16(tmp,0));
     }
 
     else {
       for (k = 0; k < tmpE; k++) {
-	Diag = _mm_slli_si128(Diag, 2);
-	Diag =
-	  _mm_insert_epi16(Diag, *(b-(lenb-1-k)) != *(a-((i-lenb)-1+k)),0);
+        Diag = _mm_slli_si128(Diag, 2);
+        Diag =
+          _mm_insert_epi16(Diag, *(b-(lenb-1-k)) != *(a-((i-lenb)-1+k)),0);
       }
 
       R1 = _mm_min_epi16(_mm_add_epi16(_mm_srli_si128(R0,2),Side1), _mm_add_epi16(R1,Diag));
@@ -446,7 +445,7 @@ inline int backwardEditDistanceSSE2Extension(char *a, int lena, char *b,
 
       tmp = _mm_srli_si128(R1,2);
       for (k = 0; k < tmpE - 2; k++)
-	tmp = _mm_srli_si128(tmp,2);
+        tmp = _mm_srli_si128(tmp,2);
       minError = min(minError, _mm_extract_epi16(tmp,0));
     }
     i++;
@@ -484,7 +483,7 @@ inline int backwardEditDistanceSSE2Extension(char *a, int lena, char *b,
 
 
 inline int forwardEditDistanceSSE2Extension(char *a, int lena, char *b,
-					    int lenb) {
+    int lenb) {
   if (lenb == 0 || lena == 0)
     return 0;
 
@@ -617,21 +616,21 @@ inline int forwardEditDistanceSSE2Extension(char *a, int lena, char *b,
       R0 = _mm_min_epi16(R0, _mm_add_epi16(_mm_slli_si128(R1,2) ,Down2));
 
       if (_mm_extract_epi16(R0, 0) > errThreshold
-	  && _mm_extract_epi16(R0, 1) > errThreshold
-	  && _mm_extract_epi16(R0, 2) > errThreshold
-	  && _mm_extract_epi16(R0, 3) > errThreshold
-	  && _mm_extract_epi16(R0, 4) > errThreshold
-	  && _mm_extract_epi16(R1, 0) > errThreshold
-	  && _mm_extract_epi16(R1, 1) > errThreshold
-	  && _mm_extract_epi16(R1, 2) > errThreshold
-	  && _mm_extract_epi16(R1, 3) > errThreshold)
-	return -1;
+          && _mm_extract_epi16(R0, 1) > errThreshold
+          && _mm_extract_epi16(R0, 2) > errThreshold
+          && _mm_extract_epi16(R0, 3) > errThreshold
+          && _mm_extract_epi16(R0, 4) > errThreshold
+          && _mm_extract_epi16(R1, 0) > errThreshold
+          && _mm_extract_epi16(R1, 1) > errThreshold
+          && _mm_extract_epi16(R1, 2) > errThreshold
+          && _mm_extract_epi16(R1, 3) > errThreshold)
+        return -1;
 
       if (i == 2 * lenb - e) {
-	tmp = _mm_srli_si128(R0,2);
-	for (k = 0; k < e - 1; k++)
-	  tmp = _mm_srli_si128(tmp,2);
-	minError = _mm_extract_epi16(tmp,0);
+        tmp = _mm_srli_si128(R0,2);
+        for (k = 0; k < e - 1; k++)
+          tmp = _mm_srli_si128(tmp,2);
+        minError = _mm_extract_epi16(tmp,0);
       }
 
     }
@@ -644,10 +643,10 @@ inline int forwardEditDistanceSSE2Extension(char *a, int lena, char *b,
       R1 = _mm_min_epi16(R1, _mm_add_epi16(R0 ,Down1));
 
       if (i >= 2 * lenb - e) {
-	tmp = _mm_srli_si128(R1,2);
-	for (k = 0; k < e - 2; k++)
-	  tmp = _mm_srli_si128(tmp,2);
-	minError = min(minError, _mm_extract_epi16(tmp,0));
+        tmp = _mm_srli_si128(R1,2);
+        for (k = 0; k < e - 2; k++)
+          tmp = _mm_srli_si128(tmp,2);
+        minError = min(minError, _mm_extract_epi16(tmp,0));
       }
     }
   }
@@ -660,8 +659,8 @@ inline int forwardEditDistanceSSE2Extension(char *a, int lena, char *b,
     //set the first element
     if (j == 0) {
       for (k = 0; k <= e - 1; k++) {
-	Diag = _mm_slli_si128(Diag, 2);
-	Diag = _mm_insert_epi16(Diag, b[lenb-1-k] != a[(i-lenb)-1+k],0);
+        Diag = _mm_slli_si128(Diag, 2);
+        Diag = _mm_insert_epi16(Diag, b[lenb-1-k] != a[(i-lenb)-1+k],0);
       }
 
       R0 = _mm_min_epi16(_mm_add_epi16(R1,Side2), _mm_add_epi16(R0,Diag));
@@ -671,12 +670,12 @@ inline int forwardEditDistanceSSE2Extension(char *a, int lena, char *b,
 
       tmp = _mm_srli_si128(R0,2);
       for (k = 0; k < e - 2; k++)
-	tmp = _mm_srli_si128(tmp,2);
+        tmp = _mm_srli_si128(tmp,2);
       minError = min(minError, _mm_extract_epi16(tmp,0));
     } else if (j % 2 == 0) {
       for (k = 0; k < tmpE; k++) {
-	Diag = _mm_slli_si128(Diag, 2);
-	Diag = _mm_insert_epi16(Diag, b[lenb-1-k] != a[(i-lenb)-1+k],0);
+        Diag = _mm_slli_si128(Diag, 2);
+        Diag = _mm_insert_epi16(Diag, b[lenb-1-k] != a[(i-lenb)-1+k],0);
       }
 
       R0 = _mm_min_epi16(_mm_add_epi16(R1,Side2), _mm_add_epi16(R0,Diag));
@@ -686,14 +685,14 @@ inline int forwardEditDistanceSSE2Extension(char *a, int lena, char *b,
 
       tmp = _mm_srli_si128(R0,2);
       for (k = 0; k < tmpE - 1; k++)
-	tmp = _mm_srli_si128(tmp,2);
+        tmp = _mm_srli_si128(tmp,2);
       minError = min(minError, _mm_extract_epi16(tmp,0));
     }
 
     else {
       for (k = 0; k < tmpE; k++) {
-	Diag = _mm_slli_si128(Diag, 2);
-	Diag = _mm_insert_epi16(Diag, b[lenb-1-k] != a[(i-lenb)-1+k],0);
+        Diag = _mm_slli_si128(Diag, 2);
+        Diag = _mm_insert_epi16(Diag, b[lenb-1-k] != a[(i-lenb)-1+k],0);
       }
 
       R1 = _mm_min_epi16(_mm_add_epi16(_mm_srli_si128(R0,2),Side1), _mm_add_epi16(R1,Diag));
@@ -701,7 +700,7 @@ inline int forwardEditDistanceSSE2Extension(char *a, int lena, char *b,
 
       tmp = _mm_srli_si128(R1,2);
       for (k = 0; k < tmpE - 2; k++)
-	tmp = _mm_srli_si128(tmp,2);
+        tmp = _mm_srli_si128(tmp,2);
       minError = min(minError, _mm_extract_epi16(tmp,0));
     }
     i++;
@@ -756,54 +755,54 @@ void finalizeBestSingleMapping()
   rqual[SEQ_LENGTH] = '\0';
 
   for(i = 0; i < _msf_seqListSize; i++)
-    {
-      if(_msf_seqList[i].hits[0] != 0)
-	{		
-	  if (bestHitMappingInfo[i].dir)
-	    {
-	      reverse(_msf_seqList[i].qual, rqual, SEQ_LENGTH);
-	      _tmpQual = rqual;
-	      _tmpSeq = _msf_seqList[i].rseq;
-	    }
-	  else
-	    {
-	      _tmpQual = _msf_seqList[i].qual;
-	      _tmpSeq = _msf_seqList[i].seq;
-	    }
+  {
+    if(_msf_seqList[i].hits[0] != 0)
+    {		
+      if (bestHitMappingInfo[i].dir)
+      {
+        reverse(_msf_seqList[i].qual, rqual, SEQ_LENGTH);
+        _tmpQual = rqual;
+        _tmpSeq = _msf_seqList[i].rseq;
+      }
+      else
+      {
+        _tmpQual = _msf_seqList[i].qual;
+        _tmpSeq = _msf_seqList[i].seq;
+      }
 
-	  _msf_output.QNAME = _msf_seqList[i].name;
-	  _msf_output.FLAG = 16 * bestHitMappingInfo[i].dir;
-	  _msf_output.RNAME = bestHitMappingInfo[i].chr;
+      _msf_output.QNAME = _msf_seqList[i].name;
+      _msf_output.FLAG = 16 * bestHitMappingInfo[i].dir;
+      _msf_output.RNAME = bestHitMappingInfo[i].chr;
 
-	  _msf_output.POS = bestHitMappingInfo[i].loc;
+      _msf_output.POS = bestHitMappingInfo[i].loc;
 
-	  if (seqFastq)
-	    _msf_output.MAPQ = mapQ(i);	  
-	  else
-	    _msf_output.MAPQ = 255;
+      if (seqFastq)
+        _msf_output.MAPQ = mapQ(i);	  
+      else
+        _msf_output.MAPQ = 255;
 
-	  _msf_output.CIGAR = bestHitMappingInfo[i].cigar;
-	  _msf_output.MRNAME = "*";
-	  _msf_output.MPOS = 0;
-	  _msf_output.ISIZE = 0;
+      _msf_output.CIGAR = bestHitMappingInfo[i].cigar;
+      _msf_output.MRNAME = "*";
+      _msf_output.MPOS = 0;
+      _msf_output.ISIZE = 0;
 
-	  _msf_output.SEQ = _tmpSeq;
-	  _msf_output.QUAL = _tmpQual;
+      _msf_output.SEQ = _tmpSeq;
+      _msf_output.QUAL = _tmpQual;
 
-	  _msf_output.optSize = 2;
-	  _msf_output.optFields = _msf_optionalFields;
+      _msf_output.optSize = 2;
+      _msf_output.optFields = _msf_optionalFields;
 
-	  _msf_optionalFields[0].tag = "NM";
-	  _msf_optionalFields[0].type = 'i';
-	  _msf_optionalFields[0].iVal = bestHitMappingInfo[i].err;
+      _msf_optionalFields[0].tag = "NM";
+      _msf_optionalFields[0].type = 'i';
+      _msf_optionalFields[0].iVal = bestHitMappingInfo[i].err;
 
-	  _msf_optionalFields[1].tag = "MD";
-	  _msf_optionalFields[1].type = 'Z';
-	  _msf_optionalFields[1].sVal = bestHitMappingInfo[i].md;
+      _msf_optionalFields[1].tag = "MD";
+      _msf_optionalFields[1].type = 'Z';
+      _msf_optionalFields[1].sVal = bestHitMappingInfo[i].md;
 
-	  output(_msf_output);
-	}
+      output(_msf_output);
     }
+  }
   freeMem(bestHitMappingInfo, _msf_seqListSize * sizeof(FullMappingInfo));
 }
 /**********************************************/
@@ -819,7 +818,7 @@ void preProcessReads() {
     _msf_sort_seqList[i].hv = hashVal(_msf_seqList[i].seq);
     _msf_sort_seqList[i].readNumber = i;    
   }
-  
+
   qsort(_msf_sort_seqList, _msf_seqListSize, sizeof(Pair), compare);
 
 }
@@ -849,14 +848,14 @@ int verifySingleEnd(int index, char* seq, int offset) {
     }
 
     if (i >= _msf_samplingLocs[curOff]
-	&& i <= _msf_samplingLocsEnds[curOff]) {
+        && i <= _msf_samplingLocsEnds[curOff]) {
       errCntOff += err;
       NCntOff += (*seq == 'N');
     } else if (curOff < _msf_samplingLocsSize
-	       && i >= _msf_samplingLocs[curOff + 1]) {
+        && i >= _msf_samplingLocs[curOff + 1]) {
 
       if (errCntOff == 0 && NCntOff == 0 && offset > curOff) {
-	return -1;
+        return -1;
       }
 
       errCntOff = 0;
@@ -864,8 +863,8 @@ int verifySingleEnd(int index, char* seq, int offset) {
       curOff++;
 
       if (i >= _msf_samplingLocs[curOff]) {
-	errCntOff += err;
-	NCntOff += (*seq == 'N');
+        errCntOff += err;
+        NCntOff += (*seq == 'N');
       }
     }
 
@@ -877,7 +876,7 @@ int verifySingleEnd(int index, char* seq, int offset) {
 
 /*********************************************/
 void initFAST(Read *seqList, int seqListSize, int *samplingLocs,
-	      int samplingLocsSize, char *genFileName) {
+    int samplingLocsSize, char *genFileName) {
   int i;
 
   if (_msf_optionalFields == NULL) {
@@ -955,7 +954,7 @@ void initFAST(Read *seqList, int seqListSize, int *samplingLocs,
     }
 
     _msf_readHasConcordantMapping = getMem(
-					   _msf_seqListSize / 2 * sizeof(char));
+        _msf_seqListSize / 2 * sizeof(char));
     for (i = 0; i < _msf_seqListSize / 2; i++) {
       _msf_readHasConcordantMapping[i] = 0;
     }
@@ -981,9 +980,642 @@ void finalizeFAST() {
 }
 
 
+uint8_t __MASK_SSE_BEG1_ [128] __aligned__ = { 0xfe, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfc,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xf8, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf0, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xe0,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xc0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff };
+
+uint8_t __MASK_SSE_BEG11_ [128] __aligned__ = { 0xfc, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf0,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xc0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
+	0xfc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0x00, 0xf0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0xc0, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
+	0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff };
+
+uint8_t __MASK_SSE_END1_ [SSE_BIT_LENGTH * SSE_BYTE_NUM / BASE_SIZE1] = {
+
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x1f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x7f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0x1f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0x7f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0x1f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0x7f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0x1f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0x7f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0x1f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0x7f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0x1f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1f, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x07, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1f, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x07, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1f, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x07, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1f, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x07, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1f, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x07, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1f, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f
+
+};
+
+///*
+// * Mask for 2 bit bases
+// */
+
+uint8_t __MASK_SSE_END11_ [SSE_BIT_LENGTH * SSE_BYTE_NUM / BASE_SIZE11] = {
+
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, };
+
+uint8_t __MASK_0F_[16] __aligned__ = { 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf,
+			0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf };
+
+uint8_t __MASK_7F_[16] __aligned__ = { 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,
+			0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f };
+
+uint8_t __MASK_0TO1_[16] __aligned__ = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x07,
+		0x06, 0x07, 0x08, 0x0f, 0x0e, 0x0f, 0x0c, 0x0f, 0x0e, 0x0f };
+
+uint8_t* MASK_SSE_END1 = __MASK_SSE_END1_;
+uint8_t* MASK_SSE_END11 = __MASK_SSE_END11_;
+uint8_t* MASK_SSE_BEG1 = __MASK_SSE_BEG1_;
+uint8_t* MASK_SSE_BEG11 = __MASK_SSE_BEG11_;
+uint8_t* MASK_0F = __MASK_0F_;
+uint8_t* MASK_7F = __MASK_7F_;
+uint8_t* MASK_0TO1 = __MASK_0TO1_;
+uint8_t POPCOUNT_4bit[16] __aligned__ = {
+/* 0 */0,
+/* 1 */1,
+/* 2 */1,
+/* 3 */1,
+/* 4 */1,
+/* 5 */2,
+/* 6 */2,
+/* 7 */1,
+/* 8 */1,
+/* 9 */2,
+/* a */2,
+/* b */2,
+/* c */1,
+/* d */2,
+/* e */1,
+/* f */1 };
+
+
+__m128i shift_right_sse12(__m128i vec, int shift_num) {
+  if(shift_num == 8)	
+    return _mm_slli_si128(vec, 1);
+  __m128i carryover = _mm_slli_si128(vec, 1);
+  carryover = _mm_srli_epi64(carryover, 8 - (shift_num % 8));
+  vec = _mm_slli_epi64(vec, shift_num % 8);
+  return _mm_or_si128(vec, carryover);
+}
+
+__m128i shift_left_sse12(__m128i vec, int shift_num) {
+  if(shift_num == 8)
+    return _mm_srli_si128(vec, 1);
+  __m128i carryover = _mm_srli_si128(vec, 1);
+  carryover = _mm_slli_epi64(carryover, 8 - (shift_num % 8));
+  vec = _mm_srli_epi64(vec, shift_num % 8);
+  return _mm_or_si128(vec, carryover);
+}
+
+
+uint32_t ssse3_popcount_m128_core(__m128i reg, uint8_t *map) {
+
+  uint32_t result;
+
+  __asm__ volatile ("movdqu (%%rax), %%xmm7" : : "a" (map));
+  __asm__ volatile ("movdqu (%%rax), %%xmm6" : : "a" (MASK_0F));
+  // xmm5 -- global accumulator
+
+  result = 0;
+
+  __asm__ volatile ("pxor %xmm4, %xmm4");
+  // xmm4 -- local accumulator
+
+  __asm__ volatile(
+      "movdqa        %1, %%xmm0	\n"
+      "movdqa    %%xmm0, %%xmm1	\n"
+
+      "psrlw         $4, %%xmm1	\n"
+      "pand      %%xmm6, %%xmm0	\n"// xmm0 := lower nibbles
+      "pand      %%xmm6, %%xmm1	\n"// xmm1 := higher nibbles
+
+      "movdqa    %%xmm7, %%xmm2	\n"
+      "movdqa    %%xmm7, %%xmm3	\n"// get popcount
+      "pshufb    %%xmm0, %%xmm2	\n"// for all nibbles
+      "pshufb    %%xmm1, %%xmm3	\n"// using PSHUFB
+
+      "paddb     %%xmm2, %%xmm4	\n"// update local
+      "paddb     %%xmm3, %%xmm4	\n"// accumulator
+
+      "pxor	%%xmm0, %%xmm0		\n"
+      "psadbw	%%xmm0, %%xmm4		\n"
+      "movhlps   %%xmm4, %%xmm0	\n"
+      "paddd     %%xmm4, %%xmm0	\n"
+      "movd   %%xmm0, %%rax		\n"
+      : "=a" (result)
+      : "x" (reg)
+             );
+
+  return result;
+}
+
+uint32_t popcount1_m128i_sse(__m128i reg) {
+  return ssse3_popcount_m128_core(reg, POPCOUNT_4bit);
+}
+
+
+uint8_t BASE_SHIFT11[16] __aligned__ = { 0x0, 0x4, 0x8, 0xc, 0x2, 0x6, 0xa, 0xe,
+  0x1, 0x5, 0x9, 0xd, 0x3, 0x7, 0xb, 0xf };
+
+char MASKA_16[16] __aligned__ = { 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A',
+  'A', 'A', 'A', 'A', 'A', 'A', 'A' };
+
+char MASKC_16[16] __aligned__ = { 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C',
+  'C', 'C', 'C', 'C', 'C', 'C', 'C' };
+
+char MASKG_16[16] __aligned__ = { 'G', 'G', 'G', 'G', 'G', 'G', 'G', 'G', 'G',
+  'G', 'G', 'G', 'G', 'G', 'G', 'G' };
+
+char MASKT_16[16] __aligned__ = { 'T', 'T', 'T', 'T', 'T', 'T', 'T', 'T', 'T',
+  'T', 'T', 'T', 'T', 'T', 'T', 'T' };
+
+uint8_t BIT_A_16[16] __aligned__ = { 0x00, 0x00, 0x00, 0x00, //A
+  0x00, 0x00, 0x00, 0x00, //A
+  0x00, 0x00, 0x00, 0x00, //A
+  0x00, 0x00, 0x00, 0x00 //A
+};
+
+uint8_t BIT_C_16[16] __aligned__ = { 0x55, 0x55, 0x55, 0x55, //C
+  0x55, 0x55, 0x55, 0x55, //C
+  0x55, 0x55, 0x55, 0x55, //C
+  0x55, 0x55, 0x55, 0x55 //C
+};
+
+uint8_t BIT_G_16[16] __aligned__ = { 0xaa, 0xaa, 0xaa, 0xaa, //G
+  0xaa, 0xaa, 0xaa, 0xaa, //G
+  0xaa, 0xaa, 0xaa, 0xaa, //G
+  0xaa, 0xaa, 0xaa, 0xaa //G
+};
+
+uint8_t BIT_T_16[16] __aligned__ = { 0xff, 0xff, 0xff, 0xff, //T
+  0xff, 0xff, 0xff, 0xff, //T
+  0xff, 0xff, 0xff, 0xff, //T
+  0xff, 0xff, 0xff, 0xff //T
+};
+
+//Have to consider Intel's endians
+uint8_t LOC_MASK11[64] = { 0x03, 0x03, 0x03, 0x03, //1
+  0x03, 0x03, 0x03, 0x03, //1
+  0x03, 0x03, 0x03, 0x03, //1
+  0x03, 0x03, 0x03, 0x03, //1
+  0x30, 0x30, 0x30, 0x30, //3
+  0x30, 0x30, 0x30, 0x30, //3
+  0x30, 0x30, 0x30, 0x30, //3
+  0x30, 0x30, 0x30, 0x30, //3
+  0x0c, 0x0c, 0x0c, 0x0c, //2
+  0x0c, 0x0c, 0x0c, 0x0c, //2
+  0x0c, 0x0c, 0x0c, 0x0c, //2
+  0x0c, 0x0c, 0x0c, 0x0c, //2
+  0xc0, 0xc0, 0xc0, 0xc0, //4
+  0xc0, 0xc0, 0xc0, 0xc0, //4
+  0xc0, 0xc0, 0xc0, 0xc0, //4
+  0xc0, 0xc0, 0xc0, 0xc0 //4
+};
+
+uint8_t BIT_00[16] __aligned__ = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+uint8_t BIT_FF[16] __aligned__ = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+
+uint8_t BASE_SHIFT1[16] __aligned__ = { 0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13,
+  3, 11, 7, 15 };
+
+uint8_t BASE_SHIFT2[16] __aligned__ = { 0, 1, 8, 9, 4, 5, 12, 13, 2, 3, 10, 11,
+  6, 7, 14, 15 };
+
+//Have to consider Intel's endians
+uint8_t LOC_MASK1[128] = { 0x01, 0x01, 0x01, 0x01, //1
+  0x01, 0x01, 0x01, 0x01, //1
+  0x01, 0x01, 0x01, 0x01, //1
+  0x01, 0x01, 0x01, 0x01, //1
+  0x04, 0x04, 0x04, 0x04, //3
+  0x04, 0x04, 0x04, 0x04, //3
+  0x04, 0x04, 0x04, 0x04, //3
+  0x04, 0x04, 0x04, 0x04, //3
+  0x02, 0x02, 0x02, 0x02, //2
+  0x02, 0x02, 0x02, 0x02, //2
+  0x02, 0x02, 0x02, 0x02, //2
+  0x02, 0x02, 0x02, 0x02, //2
+  0x08, 0x08, 0x08, 0x08, //4
+  0x08, 0x08, 0x08, 0x08, //4
+  0x08, 0x08, 0x08, 0x08, //4
+  0x08, 0x08, 0x08, 0x08, //4
+  0x10, 0x10, 0x10, 0x10, //5
+  0x10, 0x10, 0x10, 0x10, //5
+  0x10, 0x10, 0x10, 0x10, //5
+  0x10, 0x10, 0x10, 0x10, //5
+  0x40, 0x40, 0x40, 0x40, //7
+  0x40, 0x40, 0x40, 0x40, //7
+  0x40, 0x40, 0x40, 0x40, //7
+  0x40, 0x40, 0x40, 0x40, //7
+  0x20, 0x20, 0x20, 0x20, //6
+  0x20, 0x20, 0x20, 0x20, //6
+  0x20, 0x20, 0x20, 0x20, //6
+  0x20, 0x20, 0x20, 0x20, //6
+  0x80, 0x80, 0x80, 0x80, //8
+  0x80, 0x80, 0x80, 0x80, //8
+  0x80, 0x80, 0x80, 0x80, //8
+  0x80, 0x80, 0x80, 0x80 //8
+};
+
+//AATG_GCGA_CGAG_CCTA
+//AATG_GCGA_CGAG_CCTA
+//AAAA AA
+
+void sse3_convert2bit1(char *str, uint8_t *bits0, uint8_t *bits1) {
+
+  __m128i *shift_hint = (__m128i *) BASE_SHIFT1;
+  __m128i *cast_str;
+
+  __m128i temp;
+  __m128i result0, result1;
+
+  //Mask for bit0 and bit1
+  __m128i *maskA = (__m128i *) MASKA_16;
+  __m128i *maskC = (__m128i *) MASKC_16;
+  __m128i *maskG = (__m128i *) MASKG_16;
+  __m128i *maskT = (__m128i *) MASKT_16;
+  __m128i *mask;
+
+  int i;
+
+  for (i = 0; i < 128; i += 16) {
+    cast_str = (__m128i *) (str + i);
+    *cast_str = _mm_shuffle_epi8(*cast_str, *shift_hint);
+  }
+
+  //	printf("After shifting 0: %s\n", str);
+
+  for (i = 8; i < 128; i += 32) {
+    cast_str = (__m128i *) (str + i);
+    temp = _mm_loadu_si128(cast_str);
+    temp = _mm_shuffle_epi32(temp, 0x4e);
+    _mm_storeu_si128(cast_str, temp);
+  }
+
+  //	printf("After shifting 1: %s\n", str);
+
+  shift_hint = (__m128i *) BASE_SHIFT2;
+  for (i = 0; i < 128; i += 16) {
+    cast_str = (__m128i *) (str + i);
+    *cast_str = _mm_shuffle_epi8(*cast_str, *shift_hint);
+  }
+
+  //	printf("After shifting 2: %s\n", str);
+
+  for (i = 16; i < 128; i += 64) {
+    temp = *((__m128i *) (str + i));
+    *((__m128i *) (str + i)) = *((__m128i *) (str + i + 16));
+    *((__m128i *) (str + i + 16)) = temp;
+  }
+
+  //	printf("After shifting 3: %s\n", str);
+
+  for (i = 8; i < 128; i += 32) {
+    cast_str = (__m128i *) (str + i);
+    temp = _mm_loadu_si128(cast_str);
+    temp = _mm_shuffle_epi32(temp, 0x4e);
+    _mm_storeu_si128(cast_str, temp);
+  }
+
+  //	printf("After shifting 4: %s\n", str);
+
+  for (i = 0; i < 128; i += 16) {
+    cast_str = (__m128i *) (str + i);
+    temp = _mm_load_si128(cast_str);
+    temp = _mm_shuffle_epi32(temp, 0xd8);
+    _mm_store_si128(cast_str, temp);
+  }
+
+  //	printf("After shifting 5: %s\n", str);
+
+  for (i = 16; i < 64; i += 32) {
+    temp = *((__m128i *) (str + i));
+    *((__m128i *) (str + i)) = *((__m128i *) (str + i + 48));
+    *((__m128i *) (str + i + 48)) = temp;
+  }
+
+  //	printf("After shifting 6: %s\n", str);
+
+  for (i = 8; i < 128; i += 32) {
+    cast_str = (__m128i *) (str + i);
+    temp = _mm_loadu_si128(cast_str);
+    temp = _mm_shuffle_epi32(temp, 0x4e);
+    _mm_storeu_si128(cast_str, temp);
+  }
+
+  //	printf("After shifting 7: %s\n", str);
+
+  result0 = _mm_set1_epi32(0);
+  result1 = _mm_set1_epi32(0);
+  __m128i* bit0_reg = (__m128i*) bits0;
+  __m128i* bit1_reg = (__m128i*) bits1;
+
+  *bit0_reg = _mm_set1_epi32(0);
+  *bit1_reg = _mm_set1_epi32(0);
+
+  for (i = 0; i < 128; i += 16) {
+    cast_str = (__m128i *) (str + i);
+    temp = _mm_cmpeq_epi8(*maskC, *cast_str);
+    result0 = _mm_and_si128(temp, *((__m128i *) BIT_FF)); //C=01
+    //print128_hex(result);
+
+    temp = _mm_cmpeq_epi8(*maskG, *cast_str);
+    temp = _mm_and_si128(temp, *((__m128i *) BIT_FF));
+    result1 = _mm_or_si128(result1, temp); //G=10
+    //print128_hex(result);
+
+    temp = _mm_cmpeq_epi8(*maskT, *cast_str);
+    temp = _mm_and_si128(temp, *((__m128i *) BIT_FF)); //T=11
+    result0 = _mm_or_si128(result0, temp); //T=11
+    result1 = _mm_or_si128(result1, temp); //T=11
+    //print128_hex(result);
+
+    mask = (__m128i *) (LOC_MASK1 + i);
+
+    result0 = _mm_and_si128(*mask, result0);
+    result1 = _mm_and_si128(*mask, result1);
+    //print128_hex(result);
+    *bit0_reg = _mm_or_si128(*bit0_reg, result0);
+    *bit1_reg = _mm_or_si128(*bit1_reg, result1);
+    //print128_bit(result);
+    //		print128_bit(*bit0_reg);
+    //		print128_bit(*bit1_reg);
+
+  }
+}
+
+
+void flip_false_zero(__m128i vec) {
+
+  //	printf("vec: \t\t");
+  //	print128_bit(vec);
+
+  //For not crossing bits
+  __m128i *boundary= (__m128i *) MASK_7F;
+  //	printf("MASK_7F: \t");
+  //	print128_bit(*boundary);
+
+  __m128i shift = _mm_and_si128(*boundary, vec);
+
+  //	printf("After and: \t");
+  //	print128_bit(shift);
+
+  __m128i *mask = (__m128i *) MASK_0TO1;
+
+  shift = _mm_shuffle_epi8(*mask, shift);
+  vec = _mm_or_si128(vec, shift);
+
+  //	printf("Last cases %d: \t", 0);
+  //	print128_bit(vec);
+
+  int i;
+  for (i = 1; i < 4; i++) {
+    shift = _mm_srli_epi16(vec, i);
+    shift = _mm_and_si128(*boundary, shift);
+    //		printf("shift %d: \t", i);
+    //		print128_bit(shift);
+    shift = _mm_shuffle_epi8(*mask, shift);
+    //		printf("shuffle %d: \t", i);
+    //		print128_bit(shift);
+    shift = _mm_slli_epi16(shift, i);
+    vec = _mm_or_si128(vec, shift);
+    //		printf("Last cases %d: \t", i);
+    //		print128_bit(vec);
+  }
+
+  //For the crossing bits
+  __m128i shifted_vec = shift_right_sse12(vec, 4);
+  //	printf("shifted_vec: \t");
+  //	print128_bit(shifted_vec);
+
+  shift = _mm_and_si128(*boundary, shifted_vec);
+  //	printf("After and: \t");
+  //	print128_bit(shift);
+
+  shift = _mm_shuffle_epi8(*mask, shift);
+  shifted_vec = _mm_or_si128(shifted_vec, shift);
+  //	printf("Cross cases %d: \t", 0);
+  //	print128_bit(shifted_vec);
+
+  for (i = 1; i < 4; i++) {
+    shift = _mm_srli_epi16(shifted_vec, i);
+    shift = _mm_and_si128(*boundary, shift);
+    shift = _mm_shuffle_epi8(*mask, shift);
+    shift = _mm_slli_epi16(shift, i);
+    shifted_vec = _mm_or_si128(shifted_vec, shift);
+    //		printf("Cross cases %d: \t", i);
+    //		print128_bit(shifted_vec);
+  }
+
+  shifted_vec = shift_left_sse12(shifted_vec, 4);
+  vec = _mm_or_si128(shifted_vec, vec);
+  //	printf("Final case: \t");
+  //	print128_bit(vec);
+
+}
+
+
 int verifySingleEndEditDistanceExtension(int refIndex, char *lSeq,
-					 int lSeqLength, char *rSeq, int rSeqLength, int segLength, char *matrix,
-					 int *map_location) {
+    int lSeqLength, char *rSeq, int rSeqLength, int segLength, char *matrix,
+    int *map_location) {
   int i = 0;
 
   char * ref;
@@ -1002,11 +1634,11 @@ int verifySingleEndEditDistanceExtension(int refIndex, char *lSeq,
   int ERROR_BOUND = min(4, errThreshold);
 
   /*
-    1: Up
-    2: Side
-    3: Diagonal Match
-    4: Diagonal Mismatch
-  */
+1: Up
+2: Side
+3: Diagonal Match
+4: Diagonal Mismatch
+*/
 
   int min = 0;
   int minIndex1 = 0;
@@ -1021,7 +1653,7 @@ int verifySingleEndEditDistanceExtension(int refIndex, char *lSeq,
 
   if (lSeqLength != 0) {
     error3 = backwardEditDistanceSSE2Extension(ref - 1, lSeqLength,
-					       lSeq + lSeqLength - 1, lSeqLength);
+        lSeq + lSeqLength - 1, lSeqLength);
     if (error3 == -1) {
       return -1;
     }
@@ -1029,7 +1661,7 @@ int verifySingleEndEditDistanceExtension(int refIndex, char *lSeq,
 
   if (rSeqLength != 0) {
     error2 = forwardEditDistanceSSE2Extension(ref + segLength, rSeqLength,
-					      rSeq, rSeqLength);
+        rSeq, rSeqLength);
     if (error2 == -1)
       return -1;
   }
@@ -1037,359 +1669,156 @@ int verifySingleEndEditDistanceExtension(int refIndex, char *lSeq,
   if (error2 + error3 > errThreshold)
     return -1;
 
-  rIndex = 1;
-
-  //int prevError = 0;
-
-  int tempUp = 0;
-  int tempDown = 0;
-
-  int errorString = 0;
-
-  int upValue;
-  int diagValue;
-  int sideValue;
-  if (lSeqLength > ERROR_BOUND) {
-    while (rIndex <= lSeqLength + ERROR_BOUND && lSeqLength != 0) {
-      tempUp = (
-		(rIndex - ERROR_BOUND) > 0 ?
-		((rIndex > lSeqLength) ?
-		 lSeqLength - ERROR_BOUND :
-		 rIndex - ERROR_BOUND) :
-		1);
-      tempDown = (
-		  (rIndex >= lSeqLength - ERROR_BOUND) ?
-		  lSeqLength + 1 : rIndex + ERROR_BOUND + 1);
-      for (i = tempUp; i < tempDown; i++) {
-	errorString = (*(ref - rIndex) == *(lSeq + lSeqLength - i));
-
-	upValue = scoreB[i - 1][rIndex] + 1;
-	diagValue = scoreB[i - 1][rIndex - 1] + !errorString;
-	sideValue = scoreB[i][rIndex - 1] + 1;
-
-	if (i != tempUp && i != tempDown - 1)
-	  scoreB[i][rIndex] = min3(sideValue, diagValue , upValue);
-
-	else if ((i
-		  == ((rIndex - ERROR_BOUND) > 0 ?
-		      rIndex - ERROR_BOUND : 1))
-		 && rIndex <= lSeqLength)
-	  scoreB[i][rIndex] = min(sideValue, diagValue);
-	else if (rIndex > lSeqLength && (i == lSeqLength - ERROR_BOUND))
-	  scoreB[i][rIndex] = sideValue;
-	else
-	  scoreB[i][rIndex] = min(diagValue , upValue);
-
-	if (i == tempUp)
-	  error = scoreB[i][rIndex];
-	else if (error > scoreB[i][rIndex])
-	  error = scoreB[i][rIndex];
-      }
-      if (rIndex <= lSeqLength) {
-	//errorSegment = error-prevError;
-      }
-      rIndex++;
-    }
-
-    if (lSeqLength != 0) {
-      min = scoreB[lSeqLength][lSeqLength + ERROR_BOUND];
-      minIndex1 = lSeqLength + ERROR_BOUND;
-
-      // Find the Best error for all the possible ways.
-      for (i = 1; i <= 2 * ERROR_BOUND; i++) {
-	if (min >= scoreB[lSeqLength][lSeqLength + ERROR_BOUND - i]
-	    && lSeqLength + ERROR_BOUND - i > 0) {
-	  min = scoreB[lSeqLength][lSeqLength + ERROR_BOUND - i];
-	  minIndex1 = lSeqLength + ERROR_BOUND - i;
-	}
-      }
-      error = scoreB[lSeqLength][minIndex1];
-    }
-  } else {
-    int j = 0;
-    for (i = 1; i <= lSeqLength; i++) {
-      for (j = 1; j <= lSeqLength; j++) {
-	scoreB[i][j] =
-	  min3(scoreB[i-1][j-1]+ (*(ref-j) != *(lSeq+lSeqLength-i) ),scoreB[i][j-1]+1 ,scoreB[i-1][j]+1);
-      }
-    }
-    error = scoreB[lSeqLength][lSeqLength];
-    minIndex1 = lSeqLength;
-
-  }
-  error1 = error;
-
-  error = 0;
-  //errorSegment = 0;
-
-  directionIndex = lSeqLength;
-  rIndex = minIndex1;
 
   *map_location = ((lSeqLength == 0) ? refIndex : refIndex - rIndex);
 
-  ref = ref + segLength;
+  char read_t[128] __aligned__;
+  char ref_t[128] __aligned__;
+  char init_all_NULL[128] = "";
+  strncpy(read_t, init_all_NULL, 128);
+  strncpy(ref_t, init_all_NULL, 128);
+  strncpy(read_t, rSeq, rSeqLength);
+  strncpy(ref_t, ref, rSeqLength);
+  int length = rSeqLength;
+  int max_error = errThreshold;
 
-  if (rSeqLength != 0 && rSeqLength > ERROR_BOUND) {
-    ERROR_BOUND = min(ERROR_BOUND, rSeqLength);
+  //return bit_vec_filter_sse1(read_t, ref_t, rSeqLength, errThreshold);
 
-    if (rSeqLength == ERROR_BOUND) {
-      for (i = 0; i < 2 * ERROR_BOUND; i++)
-	scoreF[0][i] = i;
+  //int bit_vec_filter_sse1(char* read, char* ref, int length, int max_error) {
+  //Get ready the bits
+
+  uint8_t read_vec0[SSE_BYTE_NUM] __aligned__;
+  uint8_t read_vec1[SSE_BYTE_NUM] __aligned__;
+  uint8_t ref_vec0[SSE_BYTE_NUM] __aligned__;
+  uint8_t ref_vec1[SSE_BYTE_NUM] __aligned__;
+
+  sse3_convert2bit1(read_t, read_vec0, read_vec1);
+  sse3_convert2bit1(ref_t, ref_vec0, ref_vec1);
+
+  //Get the mask
+  __m128i mask;
+  if (length >= SSE_BASE_NUM1)
+    mask = _mm_set1_epi8(0xff);
+  else
+    mask = _mm_load_si128( (__m128i *) (MASK_SSE_END1 + (length *
+            SSE_BYTE_NUM)));
+
+  //return bit_vec_filter_m128_sse1(read_vec0_t1, read_vec1_t1, ref_vec0_t1, ref_vec1_t1, mask, max_error);
+
+  //int bit_vec_filter_m128_sse1(uint8_t *read_vec0, uint8_t *read_vec1, uint8_t *ref_vec0, uint8_t *ref_vec1, __m128i mask, int max_error) {
+
+  int total_difference = 0;
+
+  //Start iteration
+  int j;
+  //read data
+  __m128i read_XMM0 = *((__m128i *) (read_vec0));
+  __m128i read_XMM1 = *((__m128i *) (read_vec1));
+  //ref data
+  __m128i ref_XMM0 = *((__m128i *) (ref_vec0));
+  __m128i ref_XMM1 = *((__m128i *) (ref_vec1));
+
+  __m128i shift_XMM;
+  __m128i diff_XMM;
+  __m128i temp_diff_XMM;
+  __m128i temp_shift_XMM;
+  __m128i temp_mask;
+
+  diff_XMM = _mm_xor_si128(read_XMM0, ref_XMM0);
+  temp_diff_XMM = _mm_xor_si128(read_XMM1, ref_XMM1);
+  diff_XMM = _mm_or_si128(diff_XMM, temp_diff_XMM);
+
+  flip_false_zero(diff_XMM);
+
+  //	printf("diff_XMM: \t");
+  //	print128_bit(diff_XMM);
+
+  for (j = 1; j <= max_error; j++) {
+    temp_mask = _mm_load_si128( (__m128i *) (MASK_SSE_BEG1 + (j - 1) *
+          SSE_BYTE_NUM));
+    temp_mask = _mm_and_si128(temp_mask, mask);
+
+    //Right shift read
+    //shift_XMM = shift_right_sse1(read_XMM0, j);
+    if(j == 8)
+      shift_XMM = _mm_slli_si128(read_XMM0, 1);
+    else {
+      __m128i carryover = _mm_slli_si128(read_XMM0, 1);
+      carryover = _mm_srli_epi64(carryover, 8-(j % 8));
+      __m128i vec = _mm_slli_epi64(vec, j % 8);
+      shift_XMM = _mm_or_si128(vec, carryover);
     }
 
-    rIndex = 1;
-    while (rIndex <= rSeqLength + ERROR_BOUND) {
-      tempUp =
-	(rIndex - ERROR_BOUND) > 0 ?
-	((rIndex > rSeqLength) ?
-	 rSeqLength - ERROR_BOUND :
-	 rIndex - ERROR_BOUND) :
-	1;
-      tempDown = (
-		  (rIndex >= rSeqLength - ERROR_BOUND) ?
-		  rSeqLength + 1 : rIndex + ERROR_BOUND + 1);
-      for (i = tempUp; i < tempDown; i++) {
-	errorString = (*(ref + rIndex - 1) == *(rSeq + i - 1));
-	upValue = scoreF[i - 1][rIndex] + 1;
-	diagValue = scoreF[i - 1][rIndex - 1] + !errorString;
-	sideValue = scoreF[i][rIndex - 1] + 1;
+    temp_diff_XMM = _mm_xor_si128(shift_XMM, ref_XMM0);
+    //shift_XMM = shift_right_sse1(read_XMM1, j);
 
-	if (i != tempUp && i != tempDown - 1)
-	  scoreF[i][rIndex] = min3(sideValue, diagValue , upValue);
-	else if ((i
-		  == ((rIndex - ERROR_BOUND) > 0 ?
-		      rIndex - ERROR_BOUND : 1))
-		 && rIndex <= rSeqLength)
-	  scoreF[i][rIndex] = min(sideValue, diagValue);
-	else if (rIndex > rSeqLength && (i == rSeqLength - ERROR_BOUND))
-	  scoreF[i][rIndex] = sideValue;
-	else
-	  scoreF[i][rIndex] = min(diagValue , upValue);
+    if(j == 8)
+      shift_XMM = _mm_slli_si128(read_XMM1, 1);
+    else {
+      __m128i carryover = _mm_slli_si128(read_XMM1, 1);
+      carryover = _mm_srli_epi64(carryover, 8-(j % 8));
+      __m128i vec = _mm_slli_epi64(vec, j % 8);
+      shift_XMM = _mm_or_si128(vec, carryover);
+    }
 
-	if (i == tempUp)
-	  error = scoreF[i][rIndex];
-	if (error > scoreF[i][rIndex])
-	  error = scoreF[i][rIndex];
-      }
-      if (rIndex <= rSeqLength) {
-	//errorSegment = error;
-      }
-      rIndex++;
-    }
-    min = scoreF[rSeqLength][rSeqLength + ERROR_BOUND];
-    minIndex2 = rSeqLength + ERROR_BOUND;
+    temp_shift_XMM = _mm_xor_si128(shift_XMM, ref_XMM1);
+    temp_diff_XMM = _mm_or_si128(temp_shift_XMM, temp_diff_XMM);
+    temp_diff_XMM = _mm_and_si128(temp_diff_XMM, temp_mask);
+    //		printf("Before flip: \t");
+    //		print128_bit(temp_diff_XMM);
+    flip_false_zero(temp_diff_XMM);
+    //		printf("After flip: \t");
+    //		print128_bit(temp_diff_XMM);
+    diff_XMM = _mm_and_si128(diff_XMM, temp_diff_XMM);
 
-    // Find the Best error for all the possible ways.
-    for (i = 1; i <= 2 * ERROR_BOUND; i++) {
-      if (min > scoreF[rSeqLength][rSeqLength + ERROR_BOUND - i]
-	  && rSeqLength + ERROR_BOUND - i > 0) {
-	min = scoreF[rSeqLength][rSeqLength + ERROR_BOUND - i];
-	minIndex2 = rSeqLength + ERROR_BOUND - i;
-      }
+    //		printf("diff_XMM: \t");
+    //		print128_bit(diff_XMM);
+
+    //Right shift ref
+    //shift_XMM = shift_right_sse1(ref_XMM0, j);
+    if(j == 8)
+      shift_XMM = _mm_slli_si128(ref_XMM0, 1);
+    else {
+      __m128i carryover = _mm_slli_si128(ref_XMM0, 1);
+      carryover = _mm_srli_epi64(carryover, 8-(j % 8));
+      __m128i vec = _mm_slli_epi64(vec, j % 8);
+      shift_XMM = _mm_or_si128(vec, carryover);
     }
-    error = scoreF[rSeqLength][minIndex2];
-  } else {
-    int j = 0;
-    for (i = 1; i <= rSeqLength; i++) {
-      for (j = 1; j <= rSeqLength; j++) {
-	scoreF[i][j] =
-	  min3(scoreF[i-1][j-1]+ (*(ref+j-1) != *(rSeq+i-1) ),scoreF[i][j-1]+1 ,scoreF[i-1][j]+1);
-      }
+
+    temp_diff_XMM = _mm_xor_si128(shift_XMM, read_XMM0);
+    //shift_XMM = shift_right_sse1(ref_XMM1, j);
+    if(j == 8)
+      shift_XMM = _mm_slli_si128(ref_XMM1, 1);
+    else {
+      __m128i carryover = _mm_slli_si128(ref_XMM1, 1);
+      carryover = _mm_srli_epi64(carryover, 8-(j % 8));
+      __m128i vec = _mm_slli_epi64(vec, j % 8);
+      shift_XMM = _mm_or_si128(vec, carryover);
     }
-    error = scoreF[rSeqLength][rSeqLength];
-    minIndex2 = rSeqLength;
+
+    temp_shift_XMM = _mm_xor_si128(shift_XMM, read_XMM1);
+    temp_diff_XMM = _mm_or_si128(temp_shift_XMM, temp_diff_XMM);
+    temp_diff_XMM = _mm_and_si128(temp_diff_XMM, temp_mask);
+    //		printf("Before flip: \t");
+    //		print128_bit(temp_diff_XMM);
+    flip_false_zero(temp_diff_XMM);
+    //		printf("After flip: \t");
+    //		print128_bit(temp_diff_XMM);
+    diff_XMM = _mm_and_si128(diff_XMM, temp_diff_XMM);
+
+    //		printf("diff_XMM: \t");
+    //		print128_bit(diff_XMM);
   }
 
-  totalError = error + error1;
+  total_difference = popcount1_m128i_sse(diff_XMM);
 
-  /* Farhad 08/07/2012 */
-  if(totalError > errThreshold)
-    return -1;
-  /* Farhad 08/07/2012 */
+  //	printf("total_difference: %d\n", total_difference);
 
-  if (debugMode && totalError != error2 + error3) {
-    for (i = 0; i < lSeqLength; i++)
-      fprintf(stderr, "%c", *(tempref - 1 - i));
-    fprintf(stderr, "\n");
-    for (i = 0; i < lSeqLength; i++)
-      fprintf(stderr, "%c", *(lSeq + i));
-    fprintf(stderr, "\n");
-
-    for (i = 0; i < rSeqLength; i++)
-      fprintf(stderr, "%c", *(tempref + segLength + i));
-    fprintf(stderr, "\n");
-
-    for (i = 0; i < rSeqLength; i++)
-      fprintf(stderr, "%c", *(rSeq + i));
-    fprintf(stderr, "\n");
-
-    fprintf(stderr, "ERROR=%d\n", totalError);
-    fprintf(stderr, "ERROR_SSE=%d\n", error3 + error2);
-
-    fprintf(stderr, "ERROR_SSE_back=%d E_SSE_forw=%d\n", error3, error2);
-    fprintf(stderr, "ERROR_back=%d E_forw=%d\n", error1, error);
-
-  }
-
-  char matrixR[SEQ_MAX_LENGTH];
-  char matrixL[SEQ_MAX_LENGTH];
-
-  matrixR[0] = '\0';
-  matrixL[0] = '\0';
-
-  size = 0;
-  directionIndex = rSeqLength;
-  rIndex = minIndex2;
-
-  /* Farhad 29/11/2012 */
-  while (directionIndex > 0 || rIndex > 0) {
-    if (directionIndex - rIndex == errThreshold) {
-      if (scoreF[directionIndex][rIndex]
-	  - scoreF[directionIndex - 1][rIndex] == 1) {
-	matrixR[size] = *(rSeq + directionIndex - 1);
-	size++;
-	matrixR[size] = 'I';
-	directionIndex--;
-      } else if (scoreF[directionIndex][rIndex]
-		 - scoreF[directionIndex - 1][rIndex - 1] == 1) {
-	matrixR[size] = *(ref + rIndex - 1);
-	rIndex--;
-	directionIndex--;
-      } else {
-	matrixR[size] = 'M';
-	rIndex--;
-	directionIndex--;
-      }
-
-    } else if (rIndex - directionIndex == errThreshold) {
-      if (scoreF[directionIndex][rIndex]
-	  - scoreF[directionIndex][rIndex - 1] == 1) {
-	matrixR[size] = *(ref + rIndex - 1);
-	size++;
-	matrixR[size] = 'D';
-	rIndex--;
-      } else if (scoreF[directionIndex][rIndex]
-		 - scoreF[directionIndex - 1][rIndex - 1] == 1) {
-	matrixR[size] = *(ref + rIndex - 1);
-	rIndex--;
-	directionIndex--;
-      } else {
-	matrixR[size] = 'M';
-	rIndex--;
-	directionIndex--;
-      }
-    } else {
-      if (scoreF[directionIndex][rIndex]
-	  - scoreF[directionIndex - 1][rIndex] == 1
-	  && directionIndex != 0) {
-	matrixR[size] = *(rSeq + directionIndex - 1);
-	size++;
-	matrixR[size] = 'I';
-	directionIndex--;
-      } else if (scoreF[directionIndex][rIndex]
-		 - scoreF[directionIndex][rIndex - 1] == 1 && rIndex != 0) {
-	matrixR[size] = *(ref + rIndex - 1);
-	size++;
-	matrixR[size] = 'D';
-	rIndex--;
-      } else if (scoreF[directionIndex][rIndex]
-		 - scoreF[directionIndex - 1][rIndex - 1] == 1) {
-	matrixR[size] = *(ref + rIndex - 1);
-	rIndex--;
-	directionIndex--;
-      } else {
-	matrixR[size] = 'M';
-	rIndex--;
-	directionIndex--;
-      }
-    }
-    size++;
-  }
-  matrixR[size] = '\0';
-
-  size = 0;
-  directionIndex = lSeqLength;
-  rIndex = minIndex1;
-
-  while (directionIndex != 0 || rIndex != 0) {
-    if (directionIndex - rIndex == errThreshold) {
-      if (scoreB[directionIndex][rIndex]
-	  - scoreB[directionIndex - 1][rIndex] == 1) {
-	matrixL[size] = 'I';
-	size++;
-	matrixL[size] = *(lSeq + lSeqLength - directionIndex);
-	directionIndex--;
-      } else if (scoreB[directionIndex][rIndex]
-		 - scoreB[directionIndex - 1][rIndex - 1] == 1) {
-	matrixL[size] = *(tempref - rIndex);
-	rIndex--;
-	directionIndex--;
-      } else {
-	matrixL[size] = 'M';
-	rIndex--;
-	directionIndex--;
-      }
-
-    } else if (rIndex - directionIndex == errThreshold) {
-      if (scoreB[directionIndex][rIndex]
-	  - scoreB[directionIndex][rIndex - 1] == 1) {
-	matrixL[size] = 'D';
-	size++;
-	matrixL[size] = *(tempref - rIndex);
-	rIndex--;
-      } else if (scoreB[directionIndex][rIndex]
-		 - scoreB[directionIndex - 1][rIndex - 1] == 1) {
-	matrixL[size] = *(tempref - rIndex);
-	rIndex--;
-	directionIndex--;
-      } else {
-	matrixL[size] = 'M';
-	rIndex--;
-	directionIndex--;
-      }
-    } else {
-      if (scoreB[directionIndex][rIndex]
-	  - scoreB[directionIndex - 1][rIndex] == 1
-	  && directionIndex != 0) {
-	matrixL[size] = 'I';
-	size++;
-	matrixL[size] = *(lSeq + lSeqLength - directionIndex);
-	directionIndex--;
-      } else if (scoreB[directionIndex][rIndex]
-		 - scoreB[directionIndex][rIndex - 1] == 1 && rIndex != 0) {
-	matrixL[size] = 'D';
-	size++;
-	matrixL[size] = *(tempref - rIndex);
-	rIndex--;
-      } else if (scoreB[directionIndex][rIndex]
-		 - scoreB[directionIndex - 1][rIndex - 1] == 1) {
-	matrixL[size] = *(tempref - rIndex);
-	rIndex--;
-	directionIndex--;
-      } else {
-	matrixL[size] = 'M';
-	rIndex--;
-	directionIndex--;
-      }
-    }
-    size++;
-  }
-  matrixL[size] = '\0';
-
-  char middle[SEQ_MAX_LENGTH];
-  middle[0] = '\0';
-  for (i = 0; i < segLength; i++)
-    middle[i] = 'M';
-  middle[segLength] = '\0';
-
-  char rmatrixR[SEQ_MAX_LENGTH];
-
-  reverse(matrixR, rmatrixR, strlen(matrixR));
-
-  sprintf(matrix, "%s%s%s", matrixL, middle, rmatrixR);
-
-  return totalError;
-
+  return total_difference;/*
+  if (total_difference > (max_error) )
+    return 0;
+  else
+    return 1;*/
 }
 
 
@@ -1403,8 +1832,8 @@ int addCigarSize(int cnt) {
 }
 
 /*
-  Generate Cigar from the back tracking matrix
-*/
+   Generate Cigar from the back tracking matrix
+   */
 void generateCigar(char *matrix, int matrixLength, char *cigar) {
   int i = 0;
 
@@ -1420,42 +1849,42 @@ void generateCigar(char *matrix, int matrixLength, char *cigar) {
     if (matrix[i] == 'M') {
       counterM++;
       if (counterI != 0) {
-	sprintf(cigar, "%s%dI", cigar, counterI);
-	cigarSize += addCigarSize(counterI) + 1;
-	cigar[cigarSize] = '\0';
-	counterI = 0;
+        sprintf(cigar, "%s%dI", cigar, counterI);
+        cigarSize += addCigarSize(counterI) + 1;
+        cigar[cigarSize] = '\0';
+        counterI = 0;
       } else if (counterD != 0) {
-	sprintf(cigar, "%s%dD", cigar, counterD);
-	cigarSize += addCigarSize(counterD) + 1;
-	cigar[cigarSize] = '\0';
-	counterD = 0;
+        sprintf(cigar, "%s%dD", cigar, counterD);
+        cigarSize += addCigarSize(counterD) + 1;
+        cigar[cigarSize] = '\0';
+        counterD = 0;
       }
     } else if (matrix[i] == 'I') {
       if (counterM != 0) {
-	sprintf(cigar, "%s%dM", cigar, counterM);
-	cigarSize += addCigarSize(counterM) + 1;
-	cigar[cigarSize] = '\0';
-	counterM = 0;
+        sprintf(cigar, "%s%dM", cigar, counterM);
+        cigarSize += addCigarSize(counterM) + 1;
+        cigar[cigarSize] = '\0';
+        counterM = 0;
       } else if (counterD != 0) {
-	sprintf(cigar, "%s%dD", cigar, counterD);
-	cigarSize += addCigarSize(counterD) + 1;
-	cigar[cigarSize] = '\0';
-	counterD = 0;
+        sprintf(cigar, "%s%dD", cigar, counterD);
+        cigarSize += addCigarSize(counterD) + 1;
+        cigar[cigarSize] = '\0';
+        counterD = 0;
       }
       counterI++;
       i++;
 
     } else if (matrix[i] == 'D') {
       if (counterM != 0) {
-	sprintf(cigar, "%s%dM", cigar, counterM);
-	cigarSize += addCigarSize(counterM) + 1;
-	cigar[cigarSize] = '\0';
-	counterM = 0;
+        sprintf(cigar, "%s%dM", cigar, counterM);
+        cigarSize += addCigarSize(counterM) + 1;
+        cigar[cigarSize] = '\0';
+        counterM = 0;
       } else if (counterI != 0) {
-	sprintf(cigar, "%s%dI", cigar, counterI);
-	cigarSize += addCigarSize(counterI) + 1;
-	cigar[cigarSize] = '\0';
-	counterI = 0;
+        sprintf(cigar, "%s%dI", cigar, counterI);
+        cigarSize += addCigarSize(counterI) + 1;
+        cigar[cigarSize] = '\0';
+        counterI = 0;
       }
 
       counterD++;
@@ -1464,15 +1893,15 @@ void generateCigar(char *matrix, int matrixLength, char *cigar) {
     } else {
       counterM++;
       if (counterI != 0) {
-	sprintf(cigar, "%s%dI", cigar, counterI);
-	cigarSize += addCigarSize(counterI) + 1;
-	cigar[cigarSize] = '\0';
-	counterI = 0;
+        sprintf(cigar, "%s%dI", cigar, counterI);
+        cigarSize += addCigarSize(counterI) + 1;
+        cigar[cigarSize] = '\0';
+        counterI = 0;
       } else if (counterD != 0) {
-	sprintf(cigar, "%s%dD", cigar, counterD);
-	cigarSize += addCigarSize(counterD) + 1;
-	cigar[cigarSize] = '\0';
-	counterD = 0;
+        sprintf(cigar, "%s%dD", cigar, counterD);
+        cigarSize += addCigarSize(counterD) + 1;
+        cigar[cigarSize] = '\0';
+        counterD = 0;
       }
     }
     i++;
@@ -1499,8 +1928,8 @@ void generateCigar(char *matrix, int matrixLength, char *cigar) {
 }
 
 /*
-  Creates the Cigar output from the mismatching positions format  [0-9]+(([ACTGN]|\^[ACTGN]+)[0-9]+)*
-*/
+   Creates the Cigar output from the mismatching positions format  [0-9]+(([ACTGN]|\^[ACTGN]+)[0-9]+)*
+   */
 void generateCigarFromMD(char *mismatch, int mismatchLength, char *cigar) {
   int i = 0;
   int j = 0;
@@ -1515,13 +1944,13 @@ void generateCigarFromMD(char *mismatch, int mismatchLength, char *cigar) {
       start = i;
 
       while (mismatch[i] >= '0' && mismatch[i] <= '9'
-	     && i < mismatchLength)
-	i++;
+          && i < mismatchLength)
+        i++;
 
       int value = atoi(mismatch + start);
       for (j = 0; j < value - 1; j++) {
-	cigar[cigarSize] = 'M';
-	cigarSize++;
+        cigar[cigarSize] = 'M';
+        cigarSize++;
       }
       cigar[cigarSize] = 'M';
     } else if (mismatch[i] == '^') {
@@ -1558,59 +1987,59 @@ void generateSNPSAM(char *matrix, int matrixLength, char *outputSNP) {
     if (matrix[i] == 'M') {
       counterM++;
       if (counterD != 0) {
-	delete[counterD] = '\0';
-	counterD = 0;
-	sprintf(outputSNP, "%s^%s", outputSNP, delete);
-	snpSize += strlen(delete) + 1;
-	outputSNP[snpSize] = '\0';
-	delete[0] = '\0';
+        delete[counterD] = '\0';
+        counterD = 0;
+        sprintf(outputSNP, "%s^%s", outputSNP, delete);
+        snpSize += strlen(delete) + 1;
+        outputSNP[snpSize] = '\0';
+        delete[0] = '\0';
       }
     } else if (matrix[i] == 'D') {
       if (counterM != 0) {
-	sprintf(outputSNP, "%s%d", outputSNP, counterM);
-	snpSize += addCigarSize(counterM);
-	outputSNP[snpSize] = '\0';
-	counterM = 0;
-	delete[counterD] = matrix[i + 1];
-	i++;
-	counterD++;
+        sprintf(outputSNP, "%s%d", outputSNP, counterM);
+        snpSize += addCigarSize(counterM);
+        outputSNP[snpSize] = '\0';
+        counterM = 0;
+        delete[counterD] = matrix[i + 1];
+        i++;
+        counterD++;
       } else if (counterD != 0) {
-	delete[counterD] = matrix[i + 1];
-	counterD++;
-	i++;
+        delete[counterD] = matrix[i + 1];
+        counterD++;
+        i++;
       } else {
-	delete[counterD] = matrix[i + 1];
-	counterD++;
-	i++;
+        delete[counterD] = matrix[i + 1];
+        counterD++;
+        i++;
       }
     } else if (matrix[i] == 'I') {
       if (counterM != 0) {
-	// sprintf(outputSNP, "%s%d\0", outputSNP, counterM);
-	//counterM++;
+        // sprintf(outputSNP, "%s%d\0", outputSNP, counterM);
+        //counterM++;
       } else if (counterD != 0) {
-	delete[counterD] = '\0';
-	sprintf(outputSNP, "%s^%s", outputSNP, delete);
-	snpSize += strlen(delete) + 1;
-	outputSNP[snpSize] = '\0';
-	counterD = 0;
-	delete[0] = '\0';
+        delete[counterD] = '\0';
+        sprintf(outputSNP, "%s^%s", outputSNP, delete);
+        snpSize += strlen(delete) + 1;
+        outputSNP[snpSize] = '\0';
+        counterD = 0;
+        delete[0] = '\0';
       }
       i++;
 
     } else {
       if (counterM != 0) {
-	sprintf(outputSNP, "%s%d", outputSNP, counterM);
-	snpSize += addCigarSize(counterM);
-	outputSNP[snpSize] = '\0';
-	counterM = 0;
+        sprintf(outputSNP, "%s%d", outputSNP, counterM);
+        snpSize += addCigarSize(counterM);
+        outputSNP[snpSize] = '\0';
+        counterM = 0;
       }
       if (counterD != 0) {
-	delete[counterD] = '\0';
-	counterD = 0;
-	sprintf(outputSNP, "%s^%s", outputSNP, delete);
-	snpSize += strlen(delete) + 1;
-	outputSNP[snpSize] = '\0';
-	delete[0] = '\0';
+        delete[counterD] = '\0';
+        counterD = 0;
+        sprintf(outputSNP, "%s^%s", outputSNP, delete);
+        snpSize += strlen(delete) + 1;
+        outputSNP[snpSize] = '\0';
+        delete[0] = '\0';
       }
       sprintf(outputSNP, "%s%c", outputSNP, matrix[i]);
       snpSize += 1;
@@ -1647,7 +2076,7 @@ int searchKey(int target_coor, unsigned int* entry_coor, int entry_size) {
 
   while (lower_bound < upper_bound) {
     if (entry_coor[mid] <= target_coor + errThreshold
-	&& entry_coor[mid] >= target_coor - errThreshold)
+        && entry_coor[mid] >= target_coor - errThreshold)
       break;
     else if (entry_coor[mid] < target_coor)
       lower_bound = mid + 1;
@@ -1671,8 +2100,8 @@ int searchKey(int target_coor, unsigned int* entry_coor, int entry_size) {
 /* MrFAST with fastHASH: compareEntrySize()		*/
 /************************************************/
 void mapSingleEndSeq(unsigned int *l1, int s1, int readNumber, int readSegment,
-		     int direction, int index, key_struct* keys_input,
-		     int potential_key_number) {
+    int direction, int index, key_struct* keys_input,
+    int potential_key_number) {
   int j = 0;
   int z = 0;
   int *locs = (int *) l1;
@@ -1702,7 +2131,7 @@ void mapSingleEndSeq(unsigned int *l1, int s1, int readNumber, int readSegment,
     _tmpSeq = _msf_seqList[readNumber].seq;
   }
 
-   readId = 2 * readNumber + direction;
+  readId = 2 * readNumber + direction;
 
   for (z = 0; z < s1; z++) {
     int map_location = 0;
@@ -1714,35 +2143,35 @@ void mapSingleEndSeq(unsigned int *l1, int s1, int readNumber, int readSegment,
     //hxin: If the read is at the beginning of the contig, and there are insertions
     //hxin: then genLoc - _msf_sampleingLoc[0] might be smaller than _refGenBeg
     realLoc = genLoc - _msf_samplingLocs[o];
-    
+
     if (genLoc < _msf_samplingLocs[o]
-	|| genLoc - _msf_samplingLocs[o] < _msf_refGenBeg
-	|| genLoc - _msf_samplingLocs[o] > _msf_refGenEnd) {
+        || genLoc - _msf_samplingLocs[o] < _msf_refGenBeg
+        || genLoc - _msf_samplingLocs[o] > _msf_refGenEnd) {
       if (genLoc - _msf_samplingLocs[o] > _msf_refGenBeg - errThreshold)
-	realLoc =  _msf_refGenBeg;
+        realLoc =  _msf_refGenBeg;
       else
-	continue;
+        continue;
     }
 
-    
+
     if (_msf_verifiedLocs[realLoc] == readId)
       continue;
-    
+
     //Begin of long-K
     int mergeIdx = 2 * errThreshold + 1 - index;
-    
+
     if (mergeIdx < potential_key_number) {
       if (!searchKey(
-		     genLoc
-		     + (keys_input[mergeIdx].key_number
-			- keys_input[o].key_number) * WINDOW_SIZE,
-		     keys_input[mergeIdx].key_entry,
-		     keys_input[mergeIdx].key_entry_size)) {
-	continue;
+            genLoc
+            + (keys_input[mergeIdx].key_number
+              - keys_input[o].key_number) * WINDOW_SIZE,
+            keys_input[mergeIdx].key_entry,
+            keys_input[mergeIdx].key_entry_size)) {
+        continue;
       }
     }
     //End of long-K
-    
+
 
     // Adjacency Filtering Start ---------------------------------
     int skip_edit_distance = 0;
@@ -1750,21 +2179,21 @@ void mapSingleEndSeq(unsigned int *l1, int s1, int readNumber, int readSegment,
     int ix = 0;
     for (ix = 0; ix < potential_key_number; ix++) {
       if (ix >= key_number - errThreshold) {
-	break;
+        break;
       }
       if (ix != o && ix != mergeIdx) { // Changed with long-K
-	if (!searchKey(
-		       genLoc
-		       + (keys_input[ix].key_number
-			  - keys_input[o].key_number)
-		       * WINDOW_SIZE, keys_input[ix].key_entry,
-		       keys_input[ix].key_entry_size)) {
-	  diff_num++;
-	  if (diff_num > errThreshold) {
-	    skip_edit_distance = 1;
-	    break;
-	  }
-	}
+        if (!searchKey(
+              genLoc
+              + (keys_input[ix].key_number
+                - keys_input[o].key_number)
+              * WINDOW_SIZE, keys_input[ix].key_entry,
+              keys_input[ix].key_entry_size)) {
+          diff_num++;
+          if (diff_num > errThreshold) {
+            skip_edit_distance = 1;
+            break;
+          }
+        }
       }
     }
     // Adjacency Filtering End -----------------------------------
@@ -1772,12 +2201,12 @@ void mapSingleEndSeq(unsigned int *l1, int s1, int readNumber, int readSegment,
     int err = -1;
     map_location = 0;
 
-        
+
     leftSeqLength = _msf_samplingLocs[o];
     middleSeqLength = WINDOW_SIZE;
     a = leftSeqLength + middleSeqLength;
     rightSeqLength = SEQ_LENGTH - a;
-    
+
 
     /* CALKAN: skip alignment if it is a perfect match 
        this has to be re-addressed by Donghyuk
@@ -1791,19 +2220,19 @@ void mapSingleEndSeq(unsigned int *l1, int s1, int readNumber, int readSegment,
 
     if (skip_edit_distance == 0) {
 
-      	err = verifySingleEndEditDistanceExtension(genLoc, _tmpSeq,
-						   leftSeqLength, _tmpSeq + a, rightSeqLength,
-						   middleSeqLength, matrix, &map_location);
+      err = verifySingleEndEditDistanceExtension(genLoc, _tmpSeq,
+          leftSeqLength, _tmpSeq + a, rightSeqLength,
+          middleSeqLength, matrix, &map_location);
     } 
-    
+
 
     for (j = -errThreshold+1; j < errThreshold; j++) {
       if(genLoc-(readSegment*WINDOW_SIZE)+j >= _msf_refGenBeg &&
-	 genLoc-(readSegment*WINDOW_SIZE)+j <= _msf_refGenEnd){
-	_msf_verifiedLocs[genLoc-(readSegment*WINDOW_SIZE)+j] = readId;
+          genLoc-(readSegment*WINDOW_SIZE)+j <= _msf_refGenEnd){
+        _msf_verifiedLocs[genLoc-(readSegment*WINDOW_SIZE)+j] = readId;
       }
     }
-      
+
 
     if (err != -1) {
       generateSNPSAM(matrix, strlen(matrix), editString);
@@ -1811,67 +2240,67 @@ void mapSingleEndSeq(unsigned int *l1, int s1, int readNumber, int readSegment,
 
 
       if (!bestMode) {
-	mappingCnt++;
-	
-	_msf_seqList[readNumber].hits[0]++;
-	_msf_output.QNAME = _msf_seqList[readNumber].name;
-	_msf_output.FLAG = 16 * direction;
-	_msf_output.RNAME = _msf_refGenName;
-	_msf_output.POS = map_location + _msf_refGenOffset;
-	_msf_output.MAPQ = 255;
-	_msf_output.CIGAR = cigar;
-	_msf_output.MRNAME = "*";
-	_msf_output.MPOS = 0;
-	_msf_output.ISIZE = 0;
-	_msf_output.SEQ = _tmpSeq;
-	_msf_output.QUAL = _tmpQual;
-	  
-	_msf_output.optSize = 2;
-	_msf_output.optFields = _msf_optionalFields;
-	  
-	_msf_optionalFields[0].tag = "NM";
-	_msf_optionalFields[0].type = 'i';
-	_msf_optionalFields[0].iVal = err;
-	  
-	_msf_optionalFields[1].tag = "MD";
-	_msf_optionalFields[1].type = 'Z';
-	_msf_optionalFields[1].sVal = editString;
-	  
-	output(_msf_output);
-	  
-	if (_msf_seqList[readNumber].hits[0] == 1) {
-	  mappedSeqCnt++;
-	}
-	
-	if (maxHits == 0) {
-	  _msf_seqList[readNumber].hits[0] = 2;
-	}
-	
-	if (maxHits != 0 && _msf_seqList[readNumber].hits[0] == maxHits) {
-	  completedSeqCnt++;
-	  break;
-	}
+        mappingCnt++;
+
+        _msf_seqList[readNumber].hits[0]++;
+        _msf_output.QNAME = _msf_seqList[readNumber].name;
+        _msf_output.FLAG = 16 * direction;
+        _msf_output.RNAME = _msf_refGenName;
+        _msf_output.POS = map_location + _msf_refGenOffset;
+        _msf_output.MAPQ = 255;
+        _msf_output.CIGAR = cigar;
+        _msf_output.MRNAME = "*";
+        _msf_output.MPOS = 0;
+        _msf_output.ISIZE = 0;
+        _msf_output.SEQ = _tmpSeq;
+        _msf_output.QUAL = _tmpQual;
+
+        _msf_output.optSize = 2;
+        _msf_output.optFields = _msf_optionalFields;
+
+        _msf_optionalFields[0].tag = "NM";
+        _msf_optionalFields[0].type = 'i';
+        _msf_optionalFields[0].iVal = err;
+
+        _msf_optionalFields[1].tag = "MD";
+        _msf_optionalFields[1].type = 'Z';
+        _msf_optionalFields[1].sVal = editString;
+
+        output(_msf_output);
+
+        if (_msf_seqList[readNumber].hits[0] == 1) {
+          mappedSeqCnt++;
+        }
+
+        if (maxHits == 0) {
+          _msf_seqList[readNumber].hits[0] = 2;
+        }
+
+        if (maxHits != 0 && _msf_seqList[readNumber].hits[0] == maxHits) {
+          completedSeqCnt++;
+          break;
+        }
       } 
-      
+
       else  {  /* if mapped (err!=-1) and if it is best mode */
-	mappingCnt++;
-	_msf_seqList[readNumber].hits[0]++;
-	
-	if (_msf_seqList[readNumber].hits[0] == 1) {
-	  mappedSeqCnt++;
-	}
-	
-	if (maxHits == 0) {
-	  _msf_seqList[readNumber].hits[0] = 2;
-	}
-	
-	if (seqFastq)
-	  bestHitMappingInfo[readNumber].tprob += mapProb(readNumber, editString, direction, err);
-	
-	if(err  < bestHitMappingInfo[readNumber].err || bestHitMappingInfo[readNumber].loc == -1)
-	  {
-	    setFullMappingInfo(readNumber, map_location + _msf_refGenOffset, direction, err, 0, editString, _msf_refGenName, cigar );
-	  }
+        mappingCnt++;
+        _msf_seqList[readNumber].hits[0]++;
+
+        if (_msf_seqList[readNumber].hits[0] == 1) {
+          mappedSeqCnt++;
+        }
+
+        if (maxHits == 0) {
+          _msf_seqList[readNumber].hits[0] = 2;
+        }
+
+        if (seqFastq)
+          bestHitMappingInfo[readNumber].tprob += mapProb(readNumber, editString, direction, err);
+
+        if(err  < bestHitMappingInfo[readNumber].err || bestHitMappingInfo[readNumber].loc == -1)
+        {
+          setFullMappingInfo(readNumber, map_location + _msf_refGenOffset, direction, err, 0, editString, _msf_refGenName, cigar );
+        }
       }
     } 
   }
@@ -1883,7 +2312,7 @@ void mapSingleEndSeq(unsigned int *l1, int s1, int readNumber, int readSegment,
 /************************************************/
 int compareEntrySize(const void *a, const void *b) {
   return ((*(key_struct*) a).key_entry_size
-	  - (*(key_struct*) b).key_entry_size);
+      - (*(key_struct*) b).key_entry_size);
 }
 
 /************************************************/
@@ -1906,10 +2335,10 @@ int mapAllSingleEndSeq() {
       locs = getCandidates(hashVal(_msf_seqList[k].seq + it * WINDOW_SIZE));
 
       if (locs != NULL) {
-	sort_input[available_key_num].key_number = it;
-	sort_input[available_key_num].key_entry = locs;
-	sort_input[available_key_num].key_entry_size = locs[0];
-	available_key_num++;
+        sort_input[available_key_num].key_number = it;
+        sort_input[available_key_num].key_entry = locs;
+        sort_input[available_key_num].key_entry_size = locs[0];
+        available_key_num++;
       }
     }
 
@@ -1919,13 +2348,13 @@ int mapAllSingleEndSeq() {
     }
 
     qsort(sort_input, available_key_num, sizeof(key_struct),
-	  compareEntrySize);
+        compareEntrySize);
 
     for (j = 0; j < operating_key_num; j++) {
       _msf_samplingLocs[j] = sort_input[j].key_number * WINDOW_SIZE;
       mapSingleEndSeq(sort_input[j].key_entry + 1,
-		      sort_input[j].key_entry_size, k, sort_input[j].key_number,
-		      0, j, sort_input, available_key_num);
+          sort_input[j].key_entry_size, k, sort_input[j].key_number,
+          0, j, sort_input, available_key_num);
     }
   }
 
@@ -1934,19 +2363,19 @@ int mapAllSingleEndSeq() {
     k = _msf_sort_seqList[i].readNumber;
     int available_key_num = 0;
     for (it = 0; it < key_number; it++) {
-      
+
       locs = getCandidates(hashVal(_msf_seqList[k].rseq + it * WINDOW_SIZE));
 
       if (locs != NULL) {
-	sort_input[available_key_num].key_number = it;
-	sort_input[available_key_num].key_entry = locs;
-	sort_input[available_key_num].key_entry_size = locs[0];
-	available_key_num++;
+        sort_input[available_key_num].key_number = it;
+        sort_input[available_key_num].key_entry = locs;
+        sort_input[available_key_num].key_entry_size = locs[0];
+        available_key_num++;
       }
     }
 
     qsort(sort_input, available_key_num, sizeof(key_struct),
-	  compareEntrySize);
+        compareEntrySize);
 
     int operating_key_num = _msf_samplingLocsSize;
     if (available_key_num < operating_key_num) {
@@ -1956,8 +2385,8 @@ int mapAllSingleEndSeq() {
     for (j = 0; j < operating_key_num; j++) {
       _msf_samplingLocs[j] = sort_input[j].key_number * WINDOW_SIZE;
       mapSingleEndSeq(sort_input[j].key_entry + 1,
-		      sort_input[j].key_entry_size, k, sort_input[j].key_number,
-		      1, j, sort_input, available_key_num);
+          sort_input[j].key_entry_size, k, sort_input[j].key_number,
+          1, j, sort_input, available_key_num);
     }
   }
   freeMem(sort_input, key_number * sizeof(key_struct));
@@ -1983,8 +2412,8 @@ int compareOut(const void *a, const void *b) {
 /* MrFAST with fastHASH: mapPairEndSeqList()	*/
 /************************************************/
 void mapPairEndSeqList(unsigned int *l1, int s1, int readNumber,
-		       int readSegment, int direction, int index, key_struct* keys_input,
-		       int potential_key_number) {
+    int readSegment, int direction, int index, key_struct* keys_input,
+    int potential_key_number) {
   int z = 0;
   int *locs = (int *) l1;
   char *_tmpSeq;
@@ -2030,36 +2459,36 @@ void mapPairEndSeqList(unsigned int *l1, int s1, int readNumber,
     //hxinPE: then genLoc - _msf_sampleingLoc[0] might be smaller than _refGenBeg
     int realLoc = genLoc - _msf_samplingLocs[o];
     if (genLoc < _msf_samplingLocs[o]
-	|| genLoc - _msf_samplingLocs[o] < _msf_refGenBeg
-	|| genLoc - _msf_samplingLocs[o] > _msf_refGenEnd) {
-      if (genLoc - _msf_samplingLocs[o] > _msf_refGenBeg - errThreshold)
-	realLoc =  _msf_refGenBeg;
-      else
-	continue;
+    || genLoc - _msf_samplingLocs[o] < _msf_refGenBeg
+    || genLoc - _msf_samplingLocs[o] > _msf_refGenEnd) {
+    if (genLoc - _msf_samplingLocs[o] > _msf_refGenBeg - errThreshold)
+    realLoc =  _msf_refGenBeg;
+    else
+    continue;
     }
 
     if (_msf_verifiedLocs[realLoc] == readId || _msf_verifiedLocs[realLoc] == -readId )
-      continue;
+    continue;
     */
 
-    
+
     if (genLoc - leftSeqLength < _msf_refGenBeg
-	|| genLoc + rightSeqLength + middleSeqLength > _msf_refGenEnd
-	|| _msf_verifiedLocs[genLoc - _msf_samplingLocs[o]] == readId
-	|| _msf_verifiedLocs[genLoc - _msf_samplingLocs[o]] == -readId)
+        || genLoc + rightSeqLength + middleSeqLength > _msf_refGenEnd
+        || _msf_verifiedLocs[genLoc - _msf_samplingLocs[o]] == readId
+        || _msf_verifiedLocs[genLoc - _msf_samplingLocs[o]] == -readId)
       continue;
-   
+
     //Begin of long-K
     int mergeIdx = 2 * errThreshold + 1 - index;
-    
+
     if (mergeIdx < potential_key_number) {
       if (!searchKey(
-		     genLoc
-		     + (keys_input[mergeIdx].key_number
-			- keys_input[o].key_number) * WINDOW_SIZE,
-		     keys_input[mergeIdx].key_entry,
-		     keys_input[mergeIdx].key_entry_size)) {
-	continue;
+            genLoc
+            + (keys_input[mergeIdx].key_number
+              - keys_input[o].key_number) * WINDOW_SIZE,
+            keys_input[mergeIdx].key_entry,
+            keys_input[mergeIdx].key_entry_size)) {
+        continue;
       }
     }
     //End of long-K
@@ -2072,21 +2501,21 @@ void mapPairEndSeqList(unsigned int *l1, int s1, int readNumber,
     int ix = 0;
     for (ix = 0; ix < potential_key_number; ix++) {
       if (ix >= key_number - errThreshold) {
-	break;
+        break;
       }
       if (ix != o && ix != mergeIdx) { // Changed with long-K
-	if (!searchKey(
-		       genLoc
-		       + (keys_input[ix].key_number
-			  - keys_input[o].key_number)
-		       * WINDOW_SIZE, keys_input[ix].key_entry,
-		       keys_input[ix].key_entry_size)) {
-	  diff_num++;
-	  if (diff_num > errThreshold) {
-	    skip_edit_distance = 1;
-	    break;
-	  }
-	}
+        if (!searchKey(
+              genLoc
+              + (keys_input[ix].key_number
+                - keys_input[o].key_number)
+              * WINDOW_SIZE, keys_input[ix].key_entry,
+              keys_input[ix].key_entry_size)) {
+          diff_num++;
+          if (diff_num > errThreshold) {
+            skip_edit_distance = 1;
+            break;
+          }
+        }
       }
     }
     // Adjacency Filtering End -----------------------------------
@@ -2095,11 +2524,11 @@ void mapPairEndSeqList(unsigned int *l1, int s1, int readNumber,
     map_location = 0;
 
     if (skip_edit_distance == 0) {
-     
+
       err = verifySingleEndEditDistanceExtension(genLoc, _tmpSeq,
-						 leftSeqLength, _tmpSeq + a, rightSeqLength,
-						 middleSeqLength, matrix, &map_location);
-	
+          leftSeqLength, _tmpSeq + a, rightSeqLength,
+          middleSeqLength, matrix, &map_location);
+
     } else {
       err = -1; 
     }
@@ -2108,8 +2537,8 @@ void mapPairEndSeqList(unsigned int *l1, int s1, int readNumber,
 
     for (j = -errThreshold+1; j < errThreshold; j++) {
       if(genLoc-(readSegment*WINDOW_SIZE)+j >= _msf_refGenBeg &&
-	 genLoc-(readSegment*WINDOW_SIZE)+j <= _msf_refGenEnd)
-	_msf_verifiedLocs[genLoc-(readSegment*WINDOW_SIZE)+j] = readId;
+          genLoc-(readSegment*WINDOW_SIZE)+j <= _msf_refGenEnd)
+        _msf_verifiedLocs[genLoc-(readSegment*WINDOW_SIZE)+j] = readId;
     }
 
 
@@ -2117,7 +2546,7 @@ void mapPairEndSeqList(unsigned int *l1, int s1, int readNumber,
       int i = 0;
       /* calkan counter */
       mappingCnt++;
-   
+
       generateSNPSAM(matrix, strlen(matrix), editString);
       generateCigar(matrix, strlen(matrix), cigar);
       MappingLocations *parent = NULL;
@@ -2125,38 +2554,38 @@ void mapPairEndSeqList(unsigned int *l1, int s1, int readNumber,
       genLoc = map_location + _msf_refGenOffset;
 
       for (i = 0; i < (_msf_mappingInfo[r].size / MAP_CHUNKS); i++) {
-	parent = child;
-	child = child->next;
+        parent = child;
+        child = child->next;
       }
 
       if (child == NULL) {
-	MappingLocations *tmp = getMem(sizeof(MappingLocations));
-	tmp->next = NULL;
-	tmp->loc[0] = genLoc * d; // d is required: DHL
-	tmp->err[0] = err;
-	tmp->cigarSize[0] = strlen(cigar);
-	sprintf(tmp->cigar[0], "%s", cigar);
-	tmp->mdSize[0] = strlen(editString);
-	sprintf(tmp->md[0], "%s", editString);
+        MappingLocations *tmp = getMem(sizeof(MappingLocations));
+        tmp->next = NULL;
+        tmp->loc[0] = genLoc * d; // d is required: DHL
+        tmp->err[0] = err;
+        tmp->cigarSize[0] = strlen(cigar);
+        sprintf(tmp->cigar[0], "%s", cigar);
+        tmp->mdSize[0] = strlen(editString);
+        sprintf(tmp->md[0], "%s", editString);
 
-	if (parent == NULL)
-	  _msf_mappingInfo[r].next = tmp;
-	else
-	  parent->next = tmp;
+        if (parent == NULL)
+          _msf_mappingInfo[r].next = tmp;
+        else
+          parent->next = tmp;
       } else {
-	if (strlen(cigar) > SEQ_LENGTH
-	    || strlen(editString) > SEQ_LENGTH) {
-	  fprintf(stderr, 
-		 "ERROR in %d read size(After mapping) exceeds cigar=%d md =%d cigar=%s md =%s\n",
-		 r, (int) strlen(cigar), (int) strlen(editString),
-		 cigar, editString);
-	}
-	child->loc[_msf_mappingInfo[r].size % MAP_CHUNKS] = genLoc * d;
-	child->err[_msf_mappingInfo[r].size % MAP_CHUNKS] = err;
-	child->cigarSize[_msf_mappingInfo[r].size % MAP_CHUNKS] = strlen(cigar);
-	sprintf(child->cigar[_msf_mappingInfo[r].size % MAP_CHUNKS], "%s", cigar);
-	child->mdSize[_msf_mappingInfo[r].size % MAP_CHUNKS] = strlen(editString);
-	sprintf(child->md[_msf_mappingInfo[r].size % MAP_CHUNKS], "%s", editString);
+        if (strlen(cigar) > SEQ_LENGTH
+            || strlen(editString) > SEQ_LENGTH) {
+          fprintf(stderr, 
+              "ERROR in %d read size(After mapping) exceeds cigar=%d md =%d cigar=%s md =%s\n",
+              r, (int) strlen(cigar), (int) strlen(editString),
+              cigar, editString);
+        }
+        child->loc[_msf_mappingInfo[r].size % MAP_CHUNKS] = genLoc * d;
+        child->err[_msf_mappingInfo[r].size % MAP_CHUNKS] = err;
+        child->cigarSize[_msf_mappingInfo[r].size % MAP_CHUNKS] = strlen(cigar);
+        sprintf(child->cigar[_msf_mappingInfo[r].size % MAP_CHUNKS], "%s", cigar);
+        child->mdSize[_msf_mappingInfo[r].size % MAP_CHUNKS] = strlen(editString);
+        sprintf(child->md[_msf_mappingInfo[r].size % MAP_CHUNKS], "%s", editString);
       }
       _msf_mappingInfo[r].size++;
     } 
@@ -2185,10 +2614,10 @@ void mapPairedEndSeq() {
       //int key_hash = 
       locs = getCandidates(hashVal(_msf_seqList[k].seq + it * WINDOW_SIZE));
       if (locs != NULL) {
-	sort_input[available_key_num].key_number = it;
-	sort_input[available_key_num].key_entry = locs;
-	sort_input[available_key_num].key_entry_size = locs[0];
-	available_key_num++;
+        sort_input[available_key_num].key_number = it;
+        sort_input[available_key_num].key_entry = locs;
+        sort_input[available_key_num].key_entry_size = locs[0];
+        available_key_num++;
       }
     }
 
@@ -2198,13 +2627,13 @@ void mapPairedEndSeq() {
     }
 
     qsort(sort_input, available_key_num, sizeof(key_struct),
-	  compareEntrySize);
+        compareEntrySize);
 
     for (j = 0; j < operating_key_num; j++) {
       _msf_samplingLocs[j] = sort_input[j].key_number * WINDOW_SIZE;
       mapPairEndSeqList(sort_input[j].key_entry + 1,
-			sort_input[j].key_entry_size, k, sort_input[j].key_number,
-			0, j, sort_input, available_key_num);
+          sort_input[j].key_entry_size, k, sort_input[j].key_number,
+          0, j, sort_input, available_key_num);
     }
   }
 
@@ -2219,10 +2648,10 @@ void mapPairedEndSeq() {
       locs = getCandidates(hashVal(_msf_seqList[k].rseq + it * WINDOW_SIZE));
 
       if (locs != NULL) {
-	sort_input[available_key_num].key_number = it;
-	sort_input[available_key_num].key_entry = locs;
-	sort_input[available_key_num].key_entry_size = locs[0];
-	available_key_num++;
+        sort_input[available_key_num].key_number = it;
+        sort_input[available_key_num].key_entry = locs;
+        sort_input[available_key_num].key_entry_size = locs[0];
+        available_key_num++;
       }
     }
 
@@ -2232,13 +2661,13 @@ void mapPairedEndSeq() {
     }
 
     qsort(sort_input, available_key_num, sizeof(key_struct),
-	  compareEntrySize);
+        compareEntrySize);
 
     for (j = 0; j < operating_key_num; j++) {
       _msf_samplingLocs[j] = sort_input[j].key_number * WINDOW_SIZE;
       mapPairEndSeqList(sort_input[j].key_entry + 1,
-			sort_input[j].key_entry_size, k, sort_input[j].key_number,
-			1, j, sort_input, available_key_num);
+          sort_input[j].key_entry_size, k, sort_input[j].key_number,
+          1, j, sort_input, available_key_num);
     }
   }
   freeMem(sort_input, key_number * sizeof(key_struct));
@@ -2251,9 +2680,9 @@ void mapPairedEndSeq() {
   int lmax = 0, rmax = 0;
 
   sprintf(fname1, "%s__%s__%s__%d__1.tmp", mappingOutputPath, _msf_refGenName,
-	  mappingOutput, _msf_openFiles);
+      mappingOutput, _msf_openFiles);
   sprintf(fname2, "%s__%s__%s__%d__2.tmp", mappingOutputPath, _msf_refGenName,
-	  mappingOutput, _msf_openFiles);
+      mappingOutput, _msf_openFiles);
 
   FILE* out;
   FILE* out1 = fileOpen(fname1, "w");
@@ -2265,38 +2694,38 @@ void mapPairedEndSeq() {
     if (i % 2 == 0) {
       out = out1;
       if (lmax < _msf_mappingInfo[i].size) {
-	lmax = _msf_mappingInfo[i].size;
+        lmax = _msf_mappingInfo[i].size;
       }
     } else {
       out = out2;
       if (rmax < _msf_mappingInfo[i].size) {
-	rmax = _msf_mappingInfo[i].size;
+        rmax = _msf_mappingInfo[i].size;
       }
     }
     tmpOut = fwrite(&(_msf_mappingInfo[i].size), sizeof(int), 1, out);
     if (_msf_mappingInfo[i].size > 0) {
       cur = _msf_mappingInfo[i].next;
       for (j = 0; j < _msf_mappingInfo[i].size; j++) {
-	if (j > 0 && j % MAP_CHUNKS == 0) {
-	  cur = cur->next;
-	}
-	if(debugMode && (cur->cigarSize[j % MAP_CHUNKS] > SEQ_LENGTH || cur->mdSize[j % MAP_CHUNKS] > SEQ_LENGTH))
-	  {
-	    fprintf(stderr, "ERROR in %d read size exceeds cigar=%d md =%d cigar=%s md =%s\n", i,  cur->cigarSize[j % MAP_CHUNKS], cur->mdSize[j % MAP_CHUNKS], cur->cigar[j % MAP_CHUNKS], cur->md[j % MAP_CHUNKS]);	
-	  }
+        if (j > 0 && j % MAP_CHUNKS == 0) {
+          cur = cur->next;
+        }
+        if(debugMode && (cur->cigarSize[j % MAP_CHUNKS] > SEQ_LENGTH || cur->mdSize[j % MAP_CHUNKS] > SEQ_LENGTH))
+        {
+          fprintf(stderr, "ERROR in %d read size exceeds cigar=%d md =%d cigar=%s md =%s\n", i,  cur->cigarSize[j % MAP_CHUNKS], cur->mdSize[j % MAP_CHUNKS], cur->cigar[j % MAP_CHUNKS], cur->md[j % MAP_CHUNKS]);	
+        }
 
-	tmpOut = fwrite(&(cur->loc[j % MAP_CHUNKS]), sizeof(int), 1,
-			out);
-	tmpOut = fwrite(&(cur->err[j % MAP_CHUNKS]), sizeof(int), 1,
-			out);
-	tmpOut = fwrite(&(cur->cigarSize[j % MAP_CHUNKS]), sizeof(int),
-			1, out);
-	tmpOut = fwrite((cur->cigar[j % MAP_CHUNKS]), sizeof(char),
-			(cur->cigarSize[j % MAP_CHUNKS]), out);
-	tmpOut = fwrite(&(cur->mdSize[j % MAP_CHUNKS]), sizeof(int), 1,
-			out);
-	tmpOut = fwrite((cur->md[j % MAP_CHUNKS]), sizeof(char),
-			(cur->mdSize[j % MAP_CHUNKS]), out);
+        tmpOut = fwrite(&(cur->loc[j % MAP_CHUNKS]), sizeof(int), 1,
+            out);
+        tmpOut = fwrite(&(cur->err[j % MAP_CHUNKS]), sizeof(int), 1,
+            out);
+        tmpOut = fwrite(&(cur->cigarSize[j % MAP_CHUNKS]), sizeof(int),
+            1, out);
+        tmpOut = fwrite((cur->cigar[j % MAP_CHUNKS]), sizeof(char),
+            (cur->cigarSize[j % MAP_CHUNKS]), out);
+        tmpOut = fwrite(&(cur->mdSize[j % MAP_CHUNKS]), sizeof(int), 1,
+            out);
+        tmpOut = fwrite((cur->md[j % MAP_CHUNKS]), sizeof(char),
+            (cur->mdSize[j % MAP_CHUNKS]), out);
       }
       _msf_mappingInfo[i].size = 0;
     }
@@ -2343,12 +2772,12 @@ void outputPairFullMappingInfo(FILE *fp, int readNumber) {
     // ISIZE CALCULATION
     // The distance between outer edges
     isize = abs(
-		bestHitMappingInfo[readNumber * 2].loc
-		- bestHitMappingInfo[readNumber * 2 + 1].loc)
+        bestHitMappingInfo[readNumber * 2].loc
+        - bestHitMappingInfo[readNumber * 2 + 1].loc)
       + SEQ_LENGTH - 2;
 
     if (bestHitMappingInfo[readNumber * 2].loc
-	- bestHitMappingInfo[readNumber * 2 + 1].loc > 0) {
+        - bestHitMappingInfo[readNumber * 2 + 1].loc > 0) {
       isize *= -1;
     }
     d1 = (bestHitMappingInfo[readNumber * 2].dir == -1) ? 1 : 0;
@@ -2362,10 +2791,10 @@ void outputPairFullMappingInfo(FILE *fp, int readNumber) {
       qual = qual1;
     }
     if ((bestHitMappingInfo[readNumber * 2].loc
-	 < bestHitMappingInfo[readNumber * 2 + 1].loc && !d1 && d2)
-	|| (bestHitMappingInfo[readNumber * 2].loc
-	    > bestHitMappingInfo[readNumber * 2 + 1].loc && d1
-	    && !d2)) {
+          < bestHitMappingInfo[readNumber * 2 + 1].loc && !d1 && d2)
+        || (bestHitMappingInfo[readNumber * 2].loc
+          > bestHitMappingInfo[readNumber * 2 + 1].loc && d1
+          && !d2)) {
       proper = 2;
     } else {
       proper = 0;
@@ -2397,7 +2826,7 @@ void outputPairFullMappingInfo(FILE *fp, int readNumber) {
     _msf_optionalFields[1].type = 'Z';
     _msf_optionalFields[1].sVal = bestHitMappingInfo[readNumber * 2].md;
 
-    
+
     output(_msf_output);
 
     if (d2) {
@@ -2440,11 +2869,11 @@ void outputPairFullMappingInfo(FILE *fp, int readNumber) {
 }
 
 /*
-  Find the closet one to the c
-  @return 0: if the x1 is closer to c
-  1: if the x2 is closer to c
-  2: if both distance are equal
-  -1: if error
+   Find the closet one to the c
+   @return 0: if the x1 is closer to c
+1: if the x2 is closer to c
+2: if both distance are equal
+-1: if error
 */
 int findNearest(int x1, int x2, int c) {
 
@@ -2478,7 +2907,7 @@ double mapProb(int readNumber, char *md, int dir, int err){
   double phred = 0.0;
   int errloc = 0;
   int errcnt = 0; //since I cannot calculate deletion base quality
- 
+
 
   buf[0] = 0;
 
@@ -2492,26 +2921,26 @@ double mapProb(int readNumber, char *md, int dir, int err){
       errcnt++;
       buf[j] = '\0'; 
       if (j != 0)
-	errloc += atoi(buf);
+        errloc += atoi(buf);
       else if (i!=0)
-	errloc++;
+        errloc++;
 
       j=0; buf[0]=0;
 
       if (dir)
-	phred += (double) (_msf_seqList[readNumber].qual[SEQ_LENGTH-errloc-1] - 33);
+        phred += (double) (_msf_seqList[readNumber].qual[SEQ_LENGTH-errloc-1] - 33);
       else
-	phred += (double) (_msf_seqList[readNumber].qual[errloc] - 33);
+        phred += (double) (_msf_seqList[readNumber].qual[errloc] - 33);
 
       i++;
     }
-    
+
     else if (md[i]=='^'){
       /* insertion to the read / deletion from reference  */
       if (j!=0){
-	buf[j]=0;
-	errloc += atoi(buf);
-	buf[0] = 0;
+        buf[j]=0;
+        errloc += atoi(buf);
+        buf[0] = 0;
       }
       j=0; 
       i++; /* pass ^ */
@@ -2535,14 +2964,14 @@ int mapQ(int readNumber)
   double mapprob;
 
   mapprob = mapProb(readNumber, bestHitMappingInfo[readNumber].md, 
-		    bestHitMappingInfo[readNumber].dir, bestHitMappingInfo[readNumber].err); 
+      bestHitMappingInfo[readNumber].dir, bestHitMappingInfo[readNumber].err); 
 
   if (mapprob == bestHitMappingInfo[readNumber].tprob)
     mapqual = 40;
 
   else 
     mapqual =  (int) (round(-10.0 * log10(1 - (mapprob / bestHitMappingInfo[readNumber].tprob))));
-  
+
   if (mapqual > 40) mapqual = 40;
 
   return mapqual;
@@ -2550,7 +2979,7 @@ int mapQ(int readNumber)
 }
 
 void setFullMappingInfo(int readNumber, int loc, int dir, int err, int score,
-			char *md, char * refName, char *cigar) {
+    char *md, char * refName, char *cigar) {
   bestHitMappingInfo[readNumber].loc = loc;
   bestHitMappingInfo[readNumber].dir = dir;
   bestHitMappingInfo[readNumber].err = err;
@@ -2559,20 +2988,20 @@ void setFullMappingInfo(int readNumber, int loc, int dir, int err, int score,
   strncpy(bestHitMappingInfo[readNumber].md, md, strlen(md) + 1);
 
   /*
-  if (bestHitMappingInfo[readNumber].chr == NULL)
-    bestHitMappingInfo[readNumber].chr = (char *) getMem(sizeof(char) * (strlen(refName)+1));
-  else if (strlen(bestHitMappingInfo[readNumber].chr) < strlen(refName)){
-    freeMem(bestHitMappingInfo[readNumber].chr, (strlen(bestHitMappingInfo[readNumber].chr)+1));
-    bestHitMappingInfo[readNumber].chr = (char *) getMem(sizeof(char) * (strlen(refName)+1));
-  }
-  */
+     if (bestHitMappingInfo[readNumber].chr == NULL)
+     bestHitMappingInfo[readNumber].chr = (char *) getMem(sizeof(char) * (strlen(refName)+1));
+     else if (strlen(bestHitMappingInfo[readNumber].chr) < strlen(refName)){
+     freeMem(bestHitMappingInfo[readNumber].chr, (strlen(bestHitMappingInfo[readNumber].chr)+1));
+     bestHitMappingInfo[readNumber].chr = (char *) getMem(sizeof(char) * (strlen(refName)+1));
+     }
+     */
 
   strncpy(bestHitMappingInfo[readNumber].chr, refName, strlen(refName) + 1);
   strncpy(bestHitMappingInfo[readNumber].cigar, cigar, strlen(cigar) + 1);
 }
 
 void setPairFullMappingInfo(int readNumber, FullMappingInfo mi1,
-			    FullMappingInfo mi2) {
+    FullMappingInfo mi2) {
 
   bestHitMappingInfo[readNumber * 2].loc = mi1.loc;
   bestHitMappingInfo[readNumber * 2].dir = mi1.dir;
@@ -2580,20 +3009,20 @@ void setPairFullMappingInfo(int readNumber, FullMappingInfo mi1,
   bestHitMappingInfo[readNumber * 2].score = mi1.score;
 
   /*
-  if (bestHitMappingInfo[readNumber * 2].chr == NULL)
-    bestHitMappingInfo[readNumber * 2].chr = (char *) getMem(sizeof(char) * (strlen(_msf_refGenName)+1));
-  else if (strlen(bestHitMappingInfo[readNumber * 2].chr) < strlen(_msf_refGenName)){
-    freeMem(bestHitMappingInfo[readNumber * 2].chr, (strlen(bestHitMappingInfo[readNumber * 2].chr)+1));
-    bestHitMappingInfo[readNumber * 2].chr = (char *) getMem(sizeof(char) * (strlen(_msf_refGenName)+1));
-    }
-  */
+     if (bestHitMappingInfo[readNumber * 2].chr == NULL)
+     bestHitMappingInfo[readNumber * 2].chr = (char *) getMem(sizeof(char) * (strlen(_msf_refGenName)+1));
+     else if (strlen(bestHitMappingInfo[readNumber * 2].chr) < strlen(_msf_refGenName)){
+     freeMem(bestHitMappingInfo[readNumber * 2].chr, (strlen(bestHitMappingInfo[readNumber * 2].chr)+1));
+     bestHitMappingInfo[readNumber * 2].chr = (char *) getMem(sizeof(char) * (strlen(_msf_refGenName)+1));
+     }
+     */
 
   snprintf(bestHitMappingInfo[readNumber * 2].chr, strlen(_msf_refGenName)+1, "%s",
-	   _msf_refGenName);
+      _msf_refGenName);
 
   strncpy(bestHitMappingInfo[readNumber * 2].md, mi1.md, strlen(mi1.md) + 1);
   strncpy(bestHitMappingInfo[readNumber * 2].cigar, mi1.cigar,
-	  strlen(mi1.cigar) + 1);
+      strlen(mi1.cigar) + 1);
 
   bestHitMappingInfo[readNumber * 2 + 1].loc = mi2.loc;
   bestHitMappingInfo[readNumber * 2 + 1].dir = mi2.dir;
@@ -2601,21 +3030,21 @@ void setPairFullMappingInfo(int readNumber, FullMappingInfo mi1,
   bestHitMappingInfo[readNumber * 2 + 1].score = mi2.score;
 
   /*
-  if (bestHitMappingInfo[readNumber * 2 + 1].chr == NULL)
-    bestHitMappingInfo[readNumber * 2 + 1].chr = (char *) getMem(sizeof(char) * (strlen(_msf_refGenName)+1));
-  else if (strlen(bestHitMappingInfo[readNumber * 2 + 1].chr) < strlen(_msf_refGenName)){
-    freeMem(bestHitMappingInfo[readNumber * 2 + 1].chr, (strlen(bestHitMappingInfo[readNumber * 2 + 1].chr)+1));
-    bestHitMappingInfo[readNumber * 2 + 1].chr = (char *) getMem(sizeof(char) * (strlen(_msf_refGenName)+1));
-  }
-  */
+     if (bestHitMappingInfo[readNumber * 2 + 1].chr == NULL)
+     bestHitMappingInfo[readNumber * 2 + 1].chr = (char *) getMem(sizeof(char) * (strlen(_msf_refGenName)+1));
+     else if (strlen(bestHitMappingInfo[readNumber * 2 + 1].chr) < strlen(_msf_refGenName)){
+     freeMem(bestHitMappingInfo[readNumber * 2 + 1].chr, (strlen(bestHitMappingInfo[readNumber * 2 + 1].chr)+1));
+     bestHitMappingInfo[readNumber * 2 + 1].chr = (char *) getMem(sizeof(char) * (strlen(_msf_refGenName)+1));
+     }
+     */
 
   snprintf(bestHitMappingInfo[readNumber * 2 + 1].chr, strlen(_msf_refGenName)+1, "%s",
-	   _msf_refGenName);
+      _msf_refGenName);
 
   strncpy(bestHitMappingInfo[readNumber * 2 + 1].md, mi2.md,
-	  strlen(mi2.md) + 1);
+      strlen(mi2.md) + 1);
   strncpy(bestHitMappingInfo[readNumber * 2 + 1].cigar, mi2.cigar,
-	  strlen(mi2.cigar) + 1);
+      strlen(mi2.cigar) + 1);
 
 }
 
@@ -2660,14 +3089,14 @@ void outputPairedEnd() {
   _msf_fileCount[_msf_maxFile] = 0;
   for (i = 0; i < _msf_openFiles; i++) {
     sprintf(fname1[i], "%s__%s__%s__%d__1.tmp", mappingOutputPath,
-	    _msf_refGenName, mappingOutput, i);
+        _msf_refGenName, mappingOutput, i);
     sprintf(_msf_fileName[_msf_maxFile][_msf_fileCount[_msf_maxFile]][0],
-	    "%s", fname1[i]);
+        "%s", fname1[i]);
 
     sprintf(fname2[i], "%s__%s__%s__%d__2.tmp", mappingOutputPath,
-	    _msf_refGenName, mappingOutput, i);
+        _msf_refGenName, mappingOutput, i);
     sprintf(_msf_fileName[_msf_maxFile][_msf_fileCount[_msf_maxFile]][1],
-	    "%s", fname2[i]);
+        "%s", fname2[i]);
 
     in1[i] = fileOpen(fname1[i], "r");
     in2[i] = fileOpen(fname2[i], "r");
@@ -2691,64 +3120,64 @@ void outputPairedEnd() {
     for (j = 0; j < _msf_openFiles; j++) {
       tmpOut = fread(&size, sizeof(int), 1, in1[j]);
       if (size > 0) {
-	for (k = 0; k < size; k++) {
-	  mi1[size1 + k].dir = 1;
-	  tmpOut = fread(&(mi1[size1 + k].loc), sizeof(int), 1,
-			 in1[j]);
-	  tmpOut = fread(&(mi1[size1 + k].err), sizeof(int), 1,
-			 in1[j]);
+        for (k = 0; k < size; k++) {
+          mi1[size1 + k].dir = 1;
+          tmpOut = fread(&(mi1[size1 + k].loc), sizeof(int), 1,
+              in1[j]);
+          tmpOut = fread(&(mi1[size1 + k].err), sizeof(int), 1,
+              in1[j]);
 
-	  tmpOut = fread(&(mi1[size1 + k].cigarSize), sizeof(int), 1,
-			 in1[j]);
-	  tmpOut = fread((mi1[size1 + k].cigar), sizeof(char),
-			 mi1[size1 + k].cigarSize, in1[j]);
-	  mi1[size1 + k].cigar[mi1[size1 + k].cigarSize] = '\0';
+          tmpOut = fread(&(mi1[size1 + k].cigarSize), sizeof(int), 1,
+              in1[j]);
+          tmpOut = fread((mi1[size1 + k].cigar), sizeof(char),
+              mi1[size1 + k].cigarSize, in1[j]);
+          mi1[size1 + k].cigar[mi1[size1 + k].cigarSize] = '\0';
 
-	  tmpOut = fread(&(mi1[size1 + k].mdSize), sizeof(int), 1,
-			 in1[j]);
-	  tmpOut = fread((mi1[size1 + k].md), sizeof(char),
-			 (mi1[size1 + k].mdSize), in1[j]);
-	  mi1[size1 + k].md[mi1[size1 + k].mdSize] = '\0';
+          tmpOut = fread(&(mi1[size1 + k].mdSize), sizeof(int), 1,
+              in1[j]);
+          tmpOut = fread((mi1[size1 + k].md), sizeof(char),
+              (mi1[size1 + k].mdSize), in1[j]);
+          mi1[size1 + k].md[mi1[size1 + k].mdSize] = '\0';
 
-	  if (mi1[size1 + k].loc < 1) {
-	    mi1[size1 + k].loc *= -1;
-	    mi1[size1 + k].dir = -1;
-	  }
-	}
-	qsort(mi1 + size1, size, sizeof(FullMappingInfo), compareOut);
-	size1 += size;
+          if (mi1[size1 + k].loc < 1) {
+            mi1[size1 + k].loc *= -1;
+            mi1[size1 + k].dir = -1;
+          }
+        }
+        qsort(mi1 + size1, size, sizeof(FullMappingInfo), compareOut);
+        size1 += size;
       }
     }
 
     for (j = 0; j < _msf_openFiles; j++) {
       tmpOut = fread(&size, sizeof(int), 1, in2[j]);
       if (size > 0) {
-	for (k = 0; k < size; k++) {
-	  mi2[size2 + k].dir = 1;
-	  tmpOut = fread(&(mi2[size2 + k].loc), sizeof(int), 1,
-			 in2[j]);
-	  tmpOut = fread(&(mi2[size2 + k].err), sizeof(int), 1,
-			 in2[j]);
+        for (k = 0; k < size; k++) {
+          mi2[size2 + k].dir = 1;
+          tmpOut = fread(&(mi2[size2 + k].loc), sizeof(int), 1,
+              in2[j]);
+          tmpOut = fread(&(mi2[size2 + k].err), sizeof(int), 1,
+              in2[j]);
 
-	  tmpOut = fread(&(mi2[size2 + k].cigarSize), sizeof(int), 1,
-			 in2[j]);
-	  tmpOut = fread((mi2[size2 + k].cigar), sizeof(char),
-			 mi2[size2 + k].cigarSize, in2[j]);
-	  mi2[size2 + k].cigar[mi2[size2 + k].cigarSize] = '\0';
+          tmpOut = fread(&(mi2[size2 + k].cigarSize), sizeof(int), 1,
+              in2[j]);
+          tmpOut = fread((mi2[size2 + k].cigar), sizeof(char),
+              mi2[size2 + k].cigarSize, in2[j]);
+          mi2[size2 + k].cigar[mi2[size2 + k].cigarSize] = '\0';
 
-	  tmpOut = fread(&(mi2[size2 + k].mdSize), sizeof(int), 1,
-			 in2[j]);
-	  tmpOut = fread((mi2[size2 + k].md), sizeof(char),
-			 mi2[size2 + k].mdSize, in2[j]);
-	  mi2[size2 + k].md[mi2[size2 + k].mdSize] = '\0';
+          tmpOut = fread(&(mi2[size2 + k].mdSize), sizeof(int), 1,
+              in2[j]);
+          tmpOut = fread((mi2[size2 + k].md), sizeof(char),
+              mi2[size2 + k].mdSize, in2[j]);
+          mi2[size2 + k].md[mi2[size2 + k].mdSize] = '\0';
 
-	  if (mi2[size2 + k].loc < 1) {
-	    mi2[size2 + k].loc *= -1;
-	    mi2[size2 + k].dir = -1;
-	  }
-	}
-	qsort(mi2 + size2, size, sizeof(FullMappingInfo), compareOut);
-	size2 += size;
+          if (mi2[size2 + k].loc < 1) {
+            mi2[size2 + k].loc *= -1;
+            mi2[size2 + k].dir = -1;
+          }
+        }
+        qsort(mi2 + size2, size, sizeof(FullMappingInfo), compareOut);
+        size2 += size;
       }
     }
 
@@ -2758,46 +3187,46 @@ void outputPairedEnd() {
     if (pairedEndDiscordantMode) {
 
       for (j = 0; j < size1; j++) {
-	lm = mi1[j].loc - maxPairEndedDiscordantDistance + 1;
-	ll = mi1[j].loc - minPairEndedDiscordantDistance + 1;
-	rl = mi1[j].loc + minPairEndedDiscordantDistance - 1;
-	rm = mi1[j].loc + maxPairEndedDiscordantDistance - 1;
+        lm = mi1[j].loc - maxPairEndedDiscordantDistance + 1;
+        ll = mi1[j].loc - minPairEndedDiscordantDistance + 1;
+        rl = mi1[j].loc + minPairEndedDiscordantDistance - 1;
+        rm = mi1[j].loc + maxPairEndedDiscordantDistance - 1;
 
-	while (pos < size2 && mi2[pos].loc < lm) {
-	  pos++;
-	}
+        while (pos < size2 && mi2[pos].loc < lm) {
+          pos++;
+        }
 
-	k = pos;
-	while (k < size2 && mi2[k].loc <= rm) {
-	  if (mi2[k].loc <= ll || mi2[k].loc >= rl) {
-	    if ((mi1[j].loc < mi2[k].loc && mi1[j].dir == 1
-		 && mi2[k].dir == -1)
-		|| (mi1[j].loc > mi2[k].loc && mi1[j].dir == -1
-		    && mi2[k].dir == 1)) {
-	      _msf_seqList[i * 2].hits[0] = 1;
-	      _msf_seqList[i * 2 + 1].hits[0] = 1;
+        k = pos;
+        while (k < size2 && mi2[k].loc <= rm) {
+          if (mi2[k].loc <= ll || mi2[k].loc >= rl) {
+            if ((mi1[j].loc < mi2[k].loc && mi1[j].dir == 1
+                  && mi2[k].dir == -1)
+                || (mi1[j].loc > mi2[k].loc && mi1[j].dir == -1
+                  && mi2[k].dir == 1)) {
+              _msf_seqList[i * 2].hits[0] = 1;
+              _msf_seqList[i * 2 + 1].hits[0] = 1;
 
-	      if (nosamMode != 0) {
-		size1 = 0;
-		size2 = 0;
-	      }
+              if (nosamMode != 0) {
+                size1 = 0;
+                size2 = 0;
+              }
 
-	      break;
-	    }
-	  }
-	  k++;
-	}
+              break;
+            }
+          }
+          k++;
+        }
       }
 
       _msf_seqHits[i * 2] += size1;
       _msf_seqHits[i * 2 + 1] += size2;
 
       if (_msf_seqHits[i * 2 + 1] * _msf_seqHits[i * 2]
-	  > DISCORDANT_CUT_OFF && nosamMode != 0) {
-	_msf_seqList[i * 2].hits[0] = 1;
-	_msf_seqList[i * 2 + 1].hits[0] = 1;
-	size1 = 0;
-	size2 = 0;
+          > DISCORDANT_CUT_OFF && nosamMode != 0) {
+        _msf_seqList[i * 2].hits[0] = 1;
+        _msf_seqList[i * 2 + 1].hits[0] = 1;
+        size1 = 0;
+        size2 = 0;
       }
 
       int rNo = 0;
@@ -2808,73 +3237,73 @@ void outputPairedEnd() {
 
       //write the OEA data
       if (_msf_seqHits[i * 2] == 0){
-	for (k = 0;
-	     k < size2 && _msf_oeaMapping[i * 2 + 1] < maxOEAOutput;
-	     k++) {
-	  rNo = i * 2 + 1;
-	  loc = mi2[k].loc * mi2[k].dir;
-	  err = mi2[k].err;
-	  sc = mi2[k].score;
+        for (k = 0;
+            k < size2 && _msf_oeaMapping[i * 2 + 1] < maxOEAOutput;
+            k++) {
+          rNo = i * 2 + 1;
+          loc = mi2[k].loc * mi2[k].dir;
+          err = mi2[k].err;
+          sc = mi2[k].score;
 
-	  l = strlen(_msf_refGenName);
+          l = strlen(_msf_refGenName);
 
-	  tmp = fwrite(&rNo, sizeof(int), 1, out1);
+          tmp = fwrite(&rNo, sizeof(int), 1, out1);
 
-	  tmp = fwrite(&l, sizeof(char), 1, out1);
-	  tmp = fwrite(_msf_refGenName, sizeof(char), l, out1);
+          tmp = fwrite(&l, sizeof(char), 1, out1);
+          tmp = fwrite(_msf_refGenName, sizeof(char), l, out1);
 
-	  tmp = fwrite(&loc, sizeof(int), 1, out1);
-	  tmp = fwrite(&err, sizeof(int), 1, out1);
-	  tmp = fwrite(&sc, sizeof(float), 1, out1);
+          tmp = fwrite(&loc, sizeof(int), 1, out1);
+          tmp = fwrite(&err, sizeof(int), 1, out1);
+          tmp = fwrite(&sc, sizeof(float), 1, out1);
 
-	  if (mi2[k].cigarSize > SEQ_LENGTH || mi2[k].cigarSize <= 0)
-	    fprintf(stderr, "ERROR  CIGAR size=%d %s\n", mi2[k].cigarSize,
-		   _msf_seqList[i * 2 + 1].seq);
+          if (mi2[k].cigarSize > SEQ_LENGTH || mi2[k].cigarSize <= 0)
+            fprintf(stderr, "ERROR  CIGAR size=%d %s\n", mi2[k].cigarSize,
+                _msf_seqList[i * 2 + 1].seq);
 
-	  tmp = fwrite(&(mi2[k].cigarSize), sizeof(int), 1, out1);
-	  tmp = fwrite((mi2[k].cigar), sizeof(char), mi2[k].cigarSize,
-		       out1);
+          tmp = fwrite(&(mi2[k].cigarSize), sizeof(int), 1, out1);
+          tmp = fwrite((mi2[k].cigar), sizeof(char), mi2[k].cigarSize,
+              out1);
 
-	  tmp = fwrite(&(mi2[k].mdSize), sizeof(int), 1, out1);
-	  tmp = fwrite((mi2[k].md), sizeof(char), mi2[k].mdSize,
-		       out1);
+          tmp = fwrite(&(mi2[k].mdSize), sizeof(int), 1, out1);
+          tmp = fwrite((mi2[k].md), sizeof(char), mi2[k].mdSize,
+              out1);
 
-	  _msf_oeaMapping[i * 2 + 1]++;
-	}
+          _msf_oeaMapping[i * 2 + 1]++;
+        }
       }
       if (_msf_seqHits[i * 2 + 1] == 0){ 
-	for (j = 0; j < size1 && _msf_oeaMapping[i * 2] < maxOEAOutput;
-	     j++) {
-	  rNo = i * 2;
-	  loc = mi1[j].loc * mi1[j].dir;
-	  err = mi1[j].err;
-	  sc = mi1[j].score;
+        for (j = 0; j < size1 && _msf_oeaMapping[i * 2] < maxOEAOutput;
+            j++) {
+          rNo = i * 2;
+          loc = mi1[j].loc * mi1[j].dir;
+          err = mi1[j].err;
+          sc = mi1[j].score;
 
-	  l = strlen(_msf_refGenName);
+          l = strlen(_msf_refGenName);
 
-	  tmp = fwrite(&rNo, sizeof(int), 1, out1);
+          tmp = fwrite(&rNo, sizeof(int), 1, out1);
 
-	  tmp = fwrite(&l, sizeof(char), 1, out1);
-	  tmp = fwrite(_msf_refGenName, sizeof(char), l, out1);
+          tmp = fwrite(&l, sizeof(char), 1, out1);
+          tmp = fwrite(_msf_refGenName, sizeof(char), l, out1);
 
-	  tmp = fwrite(&loc, sizeof(int), 1, out1);
-	  tmp = fwrite(&err, sizeof(int), 1, out1);
-	  tmp = fwrite(&sc, sizeof(float), 1, out1);
+          tmp = fwrite(&loc, sizeof(int), 1, out1);
+          tmp = fwrite(&err, sizeof(int), 1, out1);
+          tmp = fwrite(&sc, sizeof(float), 1, out1);
 
-	  if (mi1[j].cigarSize > SEQ_LENGTH || mi1[j].cigarSize <= 0)
-	    fprintf(stderr, "ERROR %d %s\n", mi1[j].cigarSize,
-		   _msf_seqList[i * 2 + 1].seq);
+          if (mi1[j].cigarSize > SEQ_LENGTH || mi1[j].cigarSize <= 0)
+            fprintf(stderr, "ERROR %d %s\n", mi1[j].cigarSize,
+                _msf_seqList[i * 2 + 1].seq);
 
-	  tmp = fwrite(&(mi1[j].cigarSize), sizeof(int), 1, out1);
-	  tmp = fwrite((mi1[j].cigar), sizeof(char), mi1[j].cigarSize,
-		       out1);
+          tmp = fwrite(&(mi1[j].cigarSize), sizeof(int), 1, out1);
+          tmp = fwrite((mi1[j].cigar), sizeof(char), mi1[j].cigarSize,
+              out1);
 
-	  tmp = fwrite(&(mi1[j].mdSize), sizeof(int), 1, out1);
-	  tmp = fwrite((mi1[j].md), sizeof(char), mi1[j].mdSize,
-		       out1);
+          tmp = fwrite(&(mi1[j].mdSize), sizeof(int), 1, out1);
+          tmp = fwrite((mi1[j].md), sizeof(char), mi1[j].mdSize,
+              out1);
 
-	  _msf_oeaMapping[i * 2]++;
-	}
+          _msf_oeaMapping[i * 2]++;
+        }
       }
     }
 
@@ -2899,319 +3328,319 @@ void outputPairedEnd() {
 
     if (pairedEndDiscordantMode) {
       for (k = 0; k < size1; k++) {
-	mi1[k].score = calculateScore(mi1[k].loc,
-				      (mi1[k].dir == -1) ? rseq1 : seq1,
-				      (mi1[k].dir == -1) ? rqual1 : qual1, mi1[k].cigar);
+        mi1[k].score = calculateScore(mi1[k].loc,
+            (mi1[k].dir == -1) ? rseq1 : seq1,
+            (mi1[k].dir == -1) ? rqual1 : qual1, mi1[k].cigar);
       }
 
       for (k = 0; k < size2; k++) {
-	mi2[k].score = calculateScore(mi2[k].loc,
-				      (mi2[k].dir == -1) ? rseq2 : seq2,
-				      (mi2[k].dir == -1) ? rqual2 : qual2, mi2[k].cigar);
+        mi2[k].score = calculateScore(mi2[k].loc,
+            (mi2[k].dir == -1) ? rseq2 : seq2,
+            (mi2[k].dir == -1) ? rqual2 : qual2, mi2[k].cigar);
       }
 
     }
 
-    
+
     /* CALKAN MAPQ FOR PE */
     if (seqFastq){
       for (j = 0; j < size1; j++) {
-	if (mi1[j].err != 0){
-	  bestHitMappingInfo[i*2].tprob += mapProb(i*2, mi1[j].md, mi1[j].dir, mi1[j].err);
-	}
+        if (mi1[j].err != 0){
+          bestHitMappingInfo[i*2].tprob += mapProb(i*2, mi1[j].md, mi1[j].dir, mi1[j].err);
+        }
       }
       for (k = 0; k < size2; k++) {
-	if (mi2[k].err != 0){
-	  bestHitMappingInfo[i*2+1].tprob += mapProb((i*2+1), mi2[k].md, mi2[k].dir, mi2[k].err);
-	}
+        if (mi2[k].err != 0){
+          bestHitMappingInfo[i*2+1].tprob += mapProb((i*2+1), mi2[k].md, mi2[k].dir, mi2[k].err);
+        }
       }
     }
-    
+
     if (pairedEndDiscordantMode) {
       for (j = 0; j < size1; j++) {
-	for (k = 0; k < size2; k++) {
-	  if (
-	      (pairedEndModePE && 
-	       (
-		(mi2[k].loc - mi1[j].loc
-		 >= minPairEndedDiscordantDistance
-		 && mi2[k].loc - mi1[j].loc
-		 <= maxPairEndedDiscordantDistance
-		 && mi1[j].dir > 0 && mi2[k].dir < 0)
-		
-		||
-		
-		(mi1[j].loc - mi2[k].loc
-		 >= minPairEndedDiscordantDistance
-		 && mi1[j].loc - mi2[k].loc
-		 <= maxPairEndedDiscordantDistance
-		 && mi1[j].dir < 0 && mi2[k].dir > 0)
-		) ) 
+        for (k = 0; k < size2; k++) {
+          if (
+              (pairedEndModePE && 
+               (
+                (mi2[k].loc - mi1[j].loc
+                 >= minPairEndedDiscordantDistance
+                 && mi2[k].loc - mi1[j].loc
+                 <= maxPairEndedDiscordantDistance
+                 && mi1[j].dir > 0 && mi2[k].dir < 0)
 
-	      ||  // CALKAN MPPE
-	      
-	      (pairedEndModeMP &&
-	       (
-		(mi2[k].loc - mi1[j].loc
-		 >= minPairEndedDiscordantDistance
-		 && mi2[k].loc - mi1[j].loc
-		 <= maxPairEndedDiscordantDistance
-		 && mi1[j].dir < 0 && mi2[k].dir > 0)
-		
-		||
-		
-		(mi1[j].loc - mi2[k].loc
-		 >= minPairEndedDiscordantDistance
-		 && mi1[j].loc - mi2[k].loc
-		 <= maxPairEndedDiscordantDistance
-		 && mi1[j].dir > 0 && mi2[k].dir < 0)
-		) ) 
-	      
-	      )
-	    {
-	    
+                ||
 
-	      //POSSIBLE CONCORDANT
-	      if(_msf_readHasConcordantMapping[i] == 0)
-		{
-		  setPairFullMappingInfo(i, mi1[j], mi2[k]);
-		  _msf_readHasConcordantMapping[i] = 1;
-		  _msf_seqList[i * 2].hits[0] = 1;
-		  _msf_seqList[i * 2 + 1].hits[0] = 1;
-		} else {
-		if (bestHitMappingInfo[i * 2].err
-		    + bestHitMappingInfo[i * 2 + 1].err
-		    >= mi1[j].err + mi2[k].err) {
+                (mi1[j].loc - mi2[k].loc
+                 >= minPairEndedDiscordantDistance
+                 && mi1[j].loc - mi2[k].loc
+                 <= maxPairEndedDiscordantDistance
+                 && mi1[j].dir < 0 && mi2[k].dir > 0)
+               ) ) 
 
-		  if (bestHitMappingInfo[i * 2].err
-		      + bestHitMappingInfo[i * 2 + 1].err
-		      == mi1[j].err + mi2[k].err
-		      && findNearest(
-				     abs(
-					 bestHitMappingInfo[i * 2 + 1].loc
-					 - bestHitMappingInfo[i * 2].loc),
-				     abs(mi2[k].loc - mi1[j].loc),
-				     meanDistanceMapping) == 0) {
-		    continue;
-		  }
-		  setPairFullMappingInfo(i, mi1[j], mi2[k]);
-		}
-	      }
-	    }
-	  //DISCORDANT TO TEMP FILE FOR POST PROCESSING
-	  else if (_msf_readHasConcordantMapping[i] == 0
-		   && _msf_seqHits[i * 2] != 0
-		   && _msf_seqHits[i * 2 + 1] != 0) {
+              ||  // CALKAN MPPE
 
-	    int rNo = i;
-	    int loc = mi1[j].loc * mi1[j].dir;
-	    int err = mi1[j].err;
-	    float sc = mi1[j].score;
+              (pairedEndModeMP &&
+               (
+                (mi2[k].loc - mi1[j].loc
+                 >= minPairEndedDiscordantDistance
+                 && mi2[k].loc - mi1[j].loc
+                 <= maxPairEndedDiscordantDistance
+                 && mi1[j].dir < 0 && mi2[k].dir > 0)
 
-	    char l = strlen(_msf_refGenName);
+                ||
 
-	    if (_msf_discordantMapping[i * 2]
-		< maxDiscordantOutput) {
+                (mi1[j].loc - mi2[k].loc
+                 >= minPairEndedDiscordantDistance
+                 && mi1[j].loc - mi2[k].loc
+                 <= maxPairEndedDiscordantDistance
+                 && mi1[j].dir > 0 && mi2[k].dir < 0)
+               ) ) 
 
-	      tmp = fwrite(&rNo, sizeof(int), 1, out);
+                )
+                {
 
-	      tmp = fwrite(&l, sizeof(char), 1, out);
-	      tmp = fwrite(_msf_refGenName, sizeof(char), l, out);
 
-	      tmp = fwrite(&loc, sizeof(int), 1, out);
-	      tmp = fwrite(&err, sizeof(int), 1, out);
-	      tmp = fwrite(&sc, sizeof(float), 1, out);
+                  //POSSIBLE CONCORDANT
+                  if(_msf_readHasConcordantMapping[i] == 0)
+                  {
+                    setPairFullMappingInfo(i, mi1[j], mi2[k]);
+                    _msf_readHasConcordantMapping[i] = 1;
+                    _msf_seqList[i * 2].hits[0] = 1;
+                    _msf_seqList[i * 2 + 1].hits[0] = 1;
+                  } else {
+                    if (bestHitMappingInfo[i * 2].err
+                        + bestHitMappingInfo[i * 2 + 1].err
+                        >= mi1[j].err + mi2[k].err) {
 
-	      tmp = fwrite(&(mi1[j].cigarSize), sizeof(int), 1,
-			   out);
-	      tmp = fwrite((mi1[j].cigar), sizeof(char),
-			   mi1[j].cigarSize, out);
+                      if (bestHitMappingInfo[i * 2].err
+                          + bestHitMappingInfo[i * 2 + 1].err
+                          == mi1[j].err + mi2[k].err
+                          && findNearest(
+                            abs(
+                              bestHitMappingInfo[i * 2 + 1].loc
+                              - bestHitMappingInfo[i * 2].loc),
+                            abs(mi2[k].loc - mi1[j].loc),
+                            meanDistanceMapping) == 0) {
+                        continue;
+                      }
+                      setPairFullMappingInfo(i, mi1[j], mi2[k]);
+                    }
+                  }
+                }
+          //DISCORDANT TO TEMP FILE FOR POST PROCESSING
+          else if (_msf_readHasConcordantMapping[i] == 0
+              && _msf_seqHits[i * 2] != 0
+              && _msf_seqHits[i * 2 + 1] != 0) {
 
-	      tmp = fwrite(&(mi1[j].mdSize), sizeof(int), 1, out);
-	      tmp = fwrite((mi1[j].md), sizeof(char),
-			   mi1[j].mdSize, out);
+            int rNo = i;
+            int loc = mi1[j].loc * mi1[j].dir;
+            int err = mi1[j].err;
+            float sc = mi1[j].score;
 
-	      loc = mi2[k].loc * mi2[k].dir;
-	      err = mi2[k].err;
-	      sc = mi2[k].score;
+            char l = strlen(_msf_refGenName);
 
-	      tmp = fwrite(&loc, sizeof(int), 1, out);
-	      tmp = fwrite(&err, sizeof(int), 1, out);
-	      tmp = fwrite(&sc, sizeof(float), 1, out);
+            if (_msf_discordantMapping[i * 2]
+                < maxDiscordantOutput) {
 
-	      tmp = fwrite(&(mi2[k].cigarSize), sizeof(int), 1,
-			   out);
-	      tmp = fwrite((mi2[k].cigar), sizeof(char),
-			   mi2[k].cigarSize, out);
+              tmp = fwrite(&rNo, sizeof(int), 1, out);
 
-	      tmp = fwrite(&(mi2[k].mdSize), sizeof(int), 1, out);
-	      tmp = fwrite((mi2[k].md), sizeof(char),
-			   mi2[k].mdSize, out);
+              tmp = fwrite(&l, sizeof(char), 1, out);
+              tmp = fwrite(_msf_refGenName, sizeof(char), l, out);
 
-	      _msf_discordantMapping[i * 2]++;
-	    }
-	    //SET THE BEST DISCORDANT
-	    //BEGIN {Farhad Hormozdiari}
-	    if (bestHitMappingInfo[i * 2].loc == -1
-		&& bestHitMappingInfo[i * 2 + 1].loc == -1
-		&& _msf_readHasConcordantMapping[i] == 0) {
-	      setPairFullMappingInfo(i, mi1[j], mi2[k]);
-	      _msf_seqList[i * 2].hits[0] = 1;
-	      _msf_seqList[i * 2 + 1].hits[0] = 1;
-	    } else if (bestHitMappingInfo[i * 2].err
-		       + bestHitMappingInfo[i * 2 + 1].err
-		       >= mi1[j].err + mi2[k].err
-		       && _msf_readHasConcordantMapping[i] == 0) {
-	      if (bestHitMappingInfo[i * 2].err
-		  + bestHitMappingInfo[i * 2 + 1].err
-		  == mi1[j].err + mi2[k].err
-		  && findNearest(
-				 abs(
-				     bestHitMappingInfo[i * 2 + 1].loc
-				     - bestHitMappingInfo[i * 2].loc),
-				 abs(mi1[j].loc - mi2[k].loc),
-				 meanDistanceMapping) == 0) {
-		continue;
-	      }
-	      setPairFullMappingInfo(i, mi1[j], mi2[k]);
-	    }
-	    //END {Farhad Hormozdiari}
-	  }
-	}
+              tmp = fwrite(&loc, sizeof(int), 1, out);
+              tmp = fwrite(&err, sizeof(int), 1, out);
+              tmp = fwrite(&sc, sizeof(float), 1, out);
+
+              tmp = fwrite(&(mi1[j].cigarSize), sizeof(int), 1,
+                  out);
+              tmp = fwrite((mi1[j].cigar), sizeof(char),
+                  mi1[j].cigarSize, out);
+
+              tmp = fwrite(&(mi1[j].mdSize), sizeof(int), 1, out);
+              tmp = fwrite((mi1[j].md), sizeof(char),
+                  mi1[j].mdSize, out);
+
+              loc = mi2[k].loc * mi2[k].dir;
+              err = mi2[k].err;
+              sc = mi2[k].score;
+
+              tmp = fwrite(&loc, sizeof(int), 1, out);
+              tmp = fwrite(&err, sizeof(int), 1, out);
+              tmp = fwrite(&sc, sizeof(float), 1, out);
+
+              tmp = fwrite(&(mi2[k].cigarSize), sizeof(int), 1,
+                  out);
+              tmp = fwrite((mi2[k].cigar), sizeof(char),
+                  mi2[k].cigarSize, out);
+
+              tmp = fwrite(&(mi2[k].mdSize), sizeof(int), 1, out);
+              tmp = fwrite((mi2[k].md), sizeof(char),
+                  mi2[k].mdSize, out);
+
+              _msf_discordantMapping[i * 2]++;
+            }
+            //SET THE BEST DISCORDANT
+            //BEGIN {Farhad Hormozdiari}
+            if (bestHitMappingInfo[i * 2].loc == -1
+                && bestHitMappingInfo[i * 2 + 1].loc == -1
+                && _msf_readHasConcordantMapping[i] == 0) {
+              setPairFullMappingInfo(i, mi1[j], mi2[k]);
+              _msf_seqList[i * 2].hits[0] = 1;
+              _msf_seqList[i * 2 + 1].hits[0] = 1;
+            } else if (bestHitMappingInfo[i * 2].err
+                + bestHitMappingInfo[i * 2 + 1].err
+                >= mi1[j].err + mi2[k].err
+                && _msf_readHasConcordantMapping[i] == 0) {
+              if (bestHitMappingInfo[i * 2].err
+                  + bestHitMappingInfo[i * 2 + 1].err
+                  == mi1[j].err + mi2[k].err
+                  && findNearest(
+                    abs(
+                      bestHitMappingInfo[i * 2 + 1].loc
+                      - bestHitMappingInfo[i * 2].loc),
+                    abs(mi1[j].loc - mi2[k].loc),
+                    meanDistanceMapping) == 0) {
+                continue;
+              }
+              setPairFullMappingInfo(i, mi1[j], mi2[k]);
+            }
+            //END {Farhad Hormozdiari}
+          }
+        }
       }
     } else {
       for (j = 0; j < size1; j++) {
-	for (k = 0; k < size2; k++) {
-	  if ((mi2[k].loc - mi1[j].loc >= minPairEndedDistance
-	       && mi2[k].loc - mi1[j].loc <= maxPairEndedDistance
-	       && mi1[j].dir > 0 && mi2[k].dir < 0)
-	      || (mi1[j].loc - mi2[k].loc >= minPairEndedDistance
-		  && mi1[j].loc - mi2[k].loc
-		  <= maxPairEndedDistance
-		  && mi1[j].dir < 0 && mi2[k].dir > 0)) {
-	    char *seq;
-	    char *qual;
-	    char d1;
-	    char d2;
-	    int isize;
-	    int proper = 0;
-	    // ISIZE CALCULATION
-	    // The distance between outer edges
-	    isize = abs(mi1[j].loc - mi2[k].loc) + SEQ_LENGTH - 2;
-	    if (mi1[j].loc - mi2[k].loc > 0) {
-	      isize *= -1;
-	    }
+        for (k = 0; k < size2; k++) {
+          if ((mi2[k].loc - mi1[j].loc >= minPairEndedDistance
+                && mi2[k].loc - mi1[j].loc <= maxPairEndedDistance
+                && mi1[j].dir > 0 && mi2[k].dir < 0)
+              || (mi1[j].loc - mi2[k].loc >= minPairEndedDistance
+                && mi1[j].loc - mi2[k].loc
+                <= maxPairEndedDistance
+                && mi1[j].dir < 0 && mi2[k].dir > 0)) {
+            char *seq;
+            char *qual;
+            char d1;
+            char d2;
+            int isize;
+            int proper = 0;
+            // ISIZE CALCULATION
+            // The distance between outer edges
+            isize = abs(mi1[j].loc - mi2[k].loc) + SEQ_LENGTH - 2;
+            if (mi1[j].loc - mi2[k].loc > 0) {
+              isize *= -1;
+            }
 
-	    d1 = (mi1[j].dir == -1) ? 1 : 0;
-	    d2 = (mi2[k].dir == -1) ? 1 : 0;
+            d1 = (mi1[j].dir == -1) ? 1 : 0;
+            d2 = (mi2[k].dir == -1) ? 1 : 0;
 
-	    //SET THE READ HAS CONCORDANT MAPPING
-	    _msf_readHasConcordantMapping[i] = 1;
+            //SET THE READ HAS CONCORDANT MAPPING
+            _msf_readHasConcordantMapping[i] = 1;
 
-	    if (d1) {
-	      seq = rseq1;
-	      qual = rqual1;
-	    } else {
-	      seq = seq1;
-	      qual = qual1;
-	    }
+            if (d1) {
+              seq = rseq1;
+              qual = rqual1;
+            } else {
+              seq = seq1;
+              qual = qual1;
+            }
 
-	    if ((mi1[j].loc < mi2[k].loc && !d1 && d2)
-		|| (mi1[j].loc > mi2[k].loc && d1 && !d2)) {
-	      proper = 2;
-	    } else {
-	      proper = 0;
-	    }
+            if ((mi1[j].loc < mi2[k].loc && !d1 && d2)
+                || (mi1[j].loc > mi2[k].loc && d1 && !d2)) {
+              proper = 2;
+            } else {
+              proper = 0;
+            }
 
-	    _msf_output.POS = mi1[j].loc;
-	    _msf_output.MPOS = mi2[k].loc;
-	    _msf_output.FLAG = 1 + proper + 16 * d1 + 32 * d2 + 64;
-	    _msf_output.ISIZE = isize;
-	    _msf_output.SEQ			= seq;
-	    _msf_output.QUAL		= qual;
-	    _msf_output.QNAME = _msf_seqList[i * 2].name;
-	    _msf_output.RNAME = _msf_refGenName;
-	    _msf_output.MAPQ = 255;
-	    _msf_output.CIGAR = cigar;
-	    _msf_output.MRNAME = "=";
+            _msf_output.POS = mi1[j].loc;
+            _msf_output.MPOS = mi2[k].loc;
+            _msf_output.FLAG = 1 + proper + 16 * d1 + 32 * d2 + 64;
+            _msf_output.ISIZE = isize;
+            _msf_output.SEQ			= seq;
+            _msf_output.QUAL		= qual;
+            _msf_output.QNAME = _msf_seqList[i * 2].name;
+            _msf_output.RNAME = _msf_refGenName;
+            _msf_output.MAPQ = 255;
+            _msf_output.CIGAR = cigar;
+            _msf_output.MRNAME = "=";
 
-	    _msf_output.optSize = 2;
-	    _msf_output.optFields = _msf_optionalFields;
+            _msf_output.optSize = 2;
+            _msf_output.optFields = _msf_optionalFields;
 
-	    _msf_optionalFields[0].tag = "NM";
-	    _msf_optionalFields[0].type = 'i';
-	    _msf_optionalFields[0].iVal = mi1[j].err;
+            _msf_optionalFields[0].tag = "NM";
+            _msf_optionalFields[0].type = 'i';
+            _msf_optionalFields[0].iVal = mi1[j].err;
 
-	    _msf_optionalFields[1].tag = "MD";
-	    _msf_optionalFields[1].type = 'Z';
-	    _msf_optionalFields[1].sVal = mi1[j].md;
+            _msf_optionalFields[1].tag = "MD";
+            _msf_optionalFields[1].type = 'Z';
+            _msf_optionalFields[1].sVal = mi1[j].md;
 
-	    if (!bestMode)
-	      output(_msf_output);
+            if (!bestMode)
+              output(_msf_output);
 
-	    if (d2) {
-	      seq = rseq2;
-	      qual = rqual2;
-	    } else {
-	      seq = seq2;
-	      qual = qual2;
-	    }
+            if (d2) {
+              seq = rseq2;
+              qual = rqual2;
+            } else {
+              seq = seq2;
+              qual = qual2;
+            }
 
-	    _msf_output.POS = mi2[k].loc;
-	    _msf_output.MPOS = mi1[j].loc;
-	    _msf_output.FLAG = 1 + proper + 16 * d2 + 32 * d1 + 128;
-	    _msf_output.ISIZE = -isize;
-	    _msf_output.SEQ		= seq;
-	    _msf_output.QUAL		= qual;
-	    _msf_output.QNAME = _msf_seqList[i * 2].name;
-	    _msf_output.RNAME = _msf_refGenName;
-	    _msf_output.MAPQ = 255;
-	    _msf_output.CIGAR = cigar;
-	    _msf_output.MRNAME = "=";
+            _msf_output.POS = mi2[k].loc;
+            _msf_output.MPOS = mi1[j].loc;
+            _msf_output.FLAG = 1 + proper + 16 * d2 + 32 * d1 + 128;
+            _msf_output.ISIZE = -isize;
+            _msf_output.SEQ		= seq;
+            _msf_output.QUAL		= qual;
+            _msf_output.QNAME = _msf_seqList[i * 2].name;
+            _msf_output.RNAME = _msf_refGenName;
+            _msf_output.MAPQ = 255;
+            _msf_output.CIGAR = cigar;
+            _msf_output.MRNAME = "=";
 
-	    _msf_output.optSize = 2;
-	    _msf_output.optFields = _msf_optionalFields;
+            _msf_output.optSize = 2;
+            _msf_output.optFields = _msf_optionalFields;
 
-	    _msf_optionalFields[0].tag = "NM";
-	    _msf_optionalFields[0].type = 'i';
-	    _msf_optionalFields[0].iVal = mi2[k].err;
-	    
+            _msf_optionalFields[0].tag = "NM";
+            _msf_optionalFields[0].type = 'i';
+            _msf_optionalFields[0].iVal = mi2[k].err;
 
-	    _msf_optionalFields[1].tag = "MD";
-	    _msf_optionalFields[1].type = 'Z';
-	    _msf_optionalFields[1].sVal = mi2[k].md;
 
-	    if (!bestMode)
-	      output(_msf_output);
-	    //SET THE BEST CONCORDANT
-	    //BEGIN {Farhad Hormozdiari}
-	    if (bestHitMappingInfo[i * 2].loc == -1
-		&& bestHitMappingInfo[i * 2 + 1].loc == -1) {
-	      setPairFullMappingInfo(i, mi1[j], mi2[k]);
-	    } else {
-	      if (bestHitMappingInfo[i * 2].err
-		  + bestHitMappingInfo[i * 2 + 1].err
-		  >= mi1[j].err + mi2[k].err) {
+            _msf_optionalFields[1].tag = "MD";
+            _msf_optionalFields[1].type = 'Z';
+            _msf_optionalFields[1].sVal = mi2[k].md;
 
-		if (bestHitMappingInfo[i * 2].err
-		    + bestHitMappingInfo[i * 2 + 1].err
-		    == mi1[j].err + mi2[k].err
-		    && findNearest(
-				   abs(
-				       bestHitMappingInfo[i * 2
-							  + 1].loc
-				       - bestHitMappingInfo[i
-							    * 2].loc),
-				   abs(mi2[k].loc - mi1[j].loc),
-				   meanDistanceMapping) == 0) {
-		  continue;
-		}
-		setPairFullMappingInfo(i, mi1[j], mi2[k]);
-	      }
-	    }
-	    //END   {Farhad Hormozdiari}
-	  }
-	}
+            if (!bestMode)
+              output(_msf_output);
+            //SET THE BEST CONCORDANT
+            //BEGIN {Farhad Hormozdiari}
+            if (bestHitMappingInfo[i * 2].loc == -1
+                && bestHitMappingInfo[i * 2 + 1].loc == -1) {
+              setPairFullMappingInfo(i, mi1[j], mi2[k]);
+            } else {
+              if (bestHitMappingInfo[i * 2].err
+                  + bestHitMappingInfo[i * 2 + 1].err
+                  >= mi1[j].err + mi2[k].err) {
+
+                if (bestHitMappingInfo[i * 2].err
+                    + bestHitMappingInfo[i * 2 + 1].err
+                    == mi1[j].err + mi2[k].err
+                    && findNearest(
+                      abs(
+                        bestHitMappingInfo[i * 2
+                        + 1].loc
+                        - bestHitMappingInfo[i
+                        * 2].loc),
+                      abs(mi2[k].loc - mi1[j].loc),
+                      meanDistanceMapping) == 0) {
+                  continue;
+                }
+                setPairFullMappingInfo(i, mi1[j], mi2[k]);
+              }
+            }
+            //END   {Farhad Hormozdiari}
+          }
+        }
       }
 
     }
@@ -3262,12 +3691,12 @@ double binomial_coefficient(int n, int k){
   double ret;
   int i;
   ret = 1.0;
-  
+
   for (i=0; i<k; i++){
     ret *= (n - i);
     ret /= (k - i);
   }
- 
+
   return ret; 
 
 }
@@ -3306,19 +3735,19 @@ float calculateScore(int index, char *seq, char *qual, char *md) {
 
     if (md[i] == 'M') {
       for (j = 0; j < value; j++) {
-	tmp[end] = 'M';
-	end++;
+        tmp[end] = 'M';
+        end++;
       }
     } else if (md[i] == 'I') {
       for (j = 0; j < value; j++) {
-	tmp[end] = 'I';
-	end++;
+        tmp[end] = 'I';
+        end++;
       }
 
     } else if (md[i] == 'D') {
       for (j = 0; j < value; j++) {
-	tmp[end] = 'D';
-	end++;
+        tmp[end] = 'D';
+        end++;
       }
     }
     i++;
@@ -3331,7 +3760,7 @@ float calculateScore(int index, char *seq, char *qual, char *md) {
   for (i = 0; i < end; i++) {
     if (tmp[i] == 'M') {
       if (*ref != *ver) {
-	score *= 0.001 + 1 / pow(10, ((qual[j] - 33) / 10.0));
+        score *= 0.001 + 1 / pow(10, ((qual[j] - 33) / 10.0));
       }
 
       ref++;
@@ -3375,17 +3804,17 @@ void convertCigarToMatrix(char *cigar, int cigar_size, char * matrix) {
       start = i;
 
       while (cigar[i] >= '0' && cigar[i] <= '9' && i < cigar_size)
-	i++;
+        i++;
 
       int value = matoi(cigar, start, i);
       for (j = 0; j < value; j++) {
-	if (cigar[i] == 'M')
-	  matrix[size] = 'M';
-	else if (cigar[i] == 'D')
-	  matrix[size] = 'D';
-	else if (cigar[i] == 'I')
-	  matrix[size] = 'I';
-	size++;
+        if (cigar[i] == 'M')
+          matrix[size] = 'M';
+        else if (cigar[i] == 'D')
+          matrix[size] = 'D';
+        else if (cigar[i] == 'I')
+          matrix[size] = 'I';
+        size++;
       }
     }
     i++;
@@ -3407,12 +3836,12 @@ void convertMDToMatrix(char *md, int md_size, char * matrix) {
       start = i;
 
       while (md[i] >= '0' && md[i] <= '9' && i < md_size)
-	i++;
+        i++;
 
       int value = matoi(md, start, i);
       for (j = 0; j < value; j++) {
-	matrix[size] = 'M';
-	size++;
+        matrix[size] = 'M';
+        size++;
       }
       i--;
     } else if (md[i] == '^') {
@@ -3428,7 +3857,7 @@ void convertMDToMatrix(char *md, int md_size, char * matrix) {
 }
 
 void convertMDCigarToMatrix(char *cigar, int cigar_size, char *md, int md_size,
-			    char *matrix) {
+    char *matrix) {
   int i = 0;
   int j = 0;
 
@@ -3443,17 +3872,17 @@ void convertMDCigarToMatrix(char *cigar, int cigar_size, char *md, int md_size,
   while (i < strlen(tmp1)) {
     if (tmp1[i] == 'M') {
       if (j < strlen(tmp2)) {
-	if (tmp2[j] == 'M') {
-	  matrix[size] = 'M';
-	  size++;
-	}
-	if (tmp2[j] != 'M') {
-	  matrix[size] = tmp2[j];
-	  size++;
-	}
+        if (tmp2[j] == 'M') {
+          matrix[size] = 'M';
+          size++;
+        }
+        if (tmp2[j] != 'M') {
+          matrix[size] = tmp2[j];
+          size++;
+        }
       } else {
-	matrix[size] = 'M';
-	size++;
+        matrix[size] = 'M';
+        size++;
       }
     } else if (tmp1[i] == 'D') {
       matrix[size] = 'D';
@@ -3589,9 +4018,9 @@ void outputPairedEndDiscPP() {
     editString2[(int) l_size] = '\0';
 
     convertMDCigarToMatrix(cigar1, strlen(cigar1), editString1,
-			   strlen(editString1), tmp_matrix1);
+        strlen(editString1), tmp_matrix1);
     convertMDCigarToMatrix(cigar2, strlen(cigar2), editString2,
-			   strlen(editString2), tmp_matrix2);
+        strlen(editString2), tmp_matrix2);
 
     /* CALKAN: GO OVER THIS VERY CAREFULLY FOR PE vs MP */
 
@@ -3603,61 +4032,61 @@ void outputPairedEndDiscPP() {
       strncpy(seq2, _msf_seqList[rNo * 2 + 1].seq, SEQ_LENGTH);
 
       if (loc1 < 0) {
-	dir1 = 'R';
-	loc1 = -loc1;
+        dir1 = 'R';
+        loc1 = -loc1;
 
-	strncpy(seq1, _msf_seqList[rNo * 2].rseq, SEQ_LENGTH);
+        strncpy(seq1, _msf_seqList[rNo * 2].rseq, SEQ_LENGTH);
       }
 
       if (loc2 < 0) {
-	dir2 = 'R';
-	loc2 = -loc2;
+        dir2 = 'R';
+        loc2 = -loc2;
 
-	strncpy(seq2, _msf_seqList[rNo * 2 + 1].rseq, SEQ_LENGTH);
+        strncpy(seq2, _msf_seqList[rNo * 2 + 1].rseq, SEQ_LENGTH);
       }
 
       convertInsertion(tmp_matrix1, seq1, matrix1);
       convertInsertion(tmp_matrix2, seq2, matrix2);
 
       if (rNo != lrNo) {
-	int j;
-	for (j = 0; j < SEQ_LENGTH; j++) {
-	  lsc += _msf_seqList[rNo * 2].qual[j]
-	    + _msf_seqList[rNo * 2 + 1].qual[j];
-	}
-	lsc /= 2 * SEQ_LENGTH;
-	lsc -= 33;
-	lrNo = rNo;
+        int j;
+        for (j = 0; j < SEQ_LENGTH; j++) {
+          lsc += _msf_seqList[rNo * 2].qual[j]
+            + _msf_seqList[rNo * 2 + 1].qual[j];
+        }
+        lsc /= 2 * SEQ_LENGTH;
+        lsc -= 33;
+        lrNo = rNo;
       }
 
       char event = '\0';
 
       if (dir1 == dir2) {
-	event = 'V';
+        event = 'V';
       } 
       else {
-	if (pairedEndModePE && loc1 < loc2 && dir1 == 'R' && dir2 == 'F') 
-	  event = 'E';
-	else if (pairedEndModeMP && loc1 < loc2 && dir1 == 'F' && dir2 == 'R') 
-	  event = 'E';
-	else if (pairedEndModePE && loc2 < loc1 && dir1 == 'F' && dir2 == 'R') 
-	  event = 'E';
-	else if (pairedEndModeMP && loc2 < loc1 && dir1 == 'R' && dir2 == 'F') 
-	  event = 'E';
-	else if (abs(loc2 - loc1) >= maxPairEndedDiscordantDistance) 
-	  event = 'D';
-	else 
-	  event = 'I';	    	 
+        if (pairedEndModePE && loc1 < loc2 && dir1 == 'R' && dir2 == 'F') 
+          event = 'E';
+        else if (pairedEndModeMP && loc1 < loc2 && dir1 == 'F' && dir2 == 'R') 
+          event = 'E';
+        else if (pairedEndModePE && loc2 < loc1 && dir1 == 'F' && dir2 == 'R') 
+          event = 'E';
+        else if (pairedEndModeMP && loc2 < loc1 && dir1 == 'R' && dir2 == 'F') 
+          event = 'E';
+        else if (abs(loc2 - loc1) >= maxPairEndedDiscordantDistance) 
+          event = 'D';
+        else 
+          event = 'I';	    	 
       }
 
       _msf_seqList[rNo * 2].hits[0] = 2;
       fprintf(out,
-	      "%s\t%s\t%d\t%d\t%c\t=\t%d\t%d\t%c\t%c\t%d\t%0.0f\t%e\n",
-	      _msf_seqList[rNo * 2].name, genName, loc1,
-	      (loc1 + SEQ_LENGTH - 1), dir1, loc2,
-	      (loc2 + SEQ_LENGTH - 1), dir2, event, (err1 + err2),
-	      lsc, sc1 * sc2);
-      
+          "%s\t%s\t%d\t%d\t%c\t=\t%d\t%d\t%c\t%c\t%d\t%0.0f\t%e\n",
+          _msf_seqList[rNo * 2].name, genName, loc1,
+          (loc1 + SEQ_LENGTH - 1), dir1, loc2,
+          (loc2 + SEQ_LENGTH - 1), dir2, event, (err1 + err2),
+          lsc, sc1 * sc2);
+
       //	      lsc, sc1 * sc2 * binomial_coefficient(2 * SEQ_LENGTH, (err1 + err2)));
 
     }
@@ -3775,13 +4204,13 @@ void finalizeOEAReads(char *fileName) {
       qual2[SEQ_LENGTH] = '\0';
     }
 
-    
+
     if (_msf_seqHits[rNo] != 0 && _msf_seqHits[rNo] < maxOEAOutput
-	&& _msf_seqHits[(rNo % 2 == 0) ? rNo + 1 : rNo - 1] == 0) {
+        && _msf_seqHits[(rNo % 2 == 0) ? rNo + 1 : rNo - 1] == 0) {
       _msf_output.POS = loc1;
       _msf_output.MPOS = 0;
       _msf_output.FLAG =
-	(rNo % 2 == 0) ? 1 + 4 + 32 * d + 128 : 1 + 8 + 16 * d + 64;
+        (rNo % 2 == 0) ? 1 + 4 + 32 * d + 128 : 1 + 8 + 16 * d + 64;
       _msf_output.ISIZE = 0;
       _msf_output.SEQ = seq1;
       _msf_output.QUAL = qual1;
@@ -3817,10 +4246,10 @@ void finalizeOEAReads(char *fileName) {
       _msf_seqList[(rNo % 2 == 0) ? rNo + 1 : rNo - 1].hits[0] = -1;
     }
     else if(_msf_seqHits[rNo] != 0 && _msf_seqHits[(rNo % 2 == 0) ? rNo + 1 : rNo - 1] == 0)
-      {
-	_msf_seqList[rNo].hits[0] = -1;
-	_msf_seqList[(rNo % 2 == 0) ? rNo + 1 : rNo - 1].hits[0] = -1;
-      }
+    {
+      _msf_seqList[rNo].hits[0] = -1;
+      _msf_seqList[(rNo % 2 == 0) ? rNo + 1 : rNo - 1].hits[0] = -1;
+    }
     flag = fread(&rNo, sizeof(int), 1, in);
   }
 
@@ -3903,149 +4332,149 @@ void finalizeOEAReads(char *fileName) {
    }
    for(k = 0; k < size2; k++)
    {
-   fread(&(miR[i].mi[k].loc), sizeof(int), 1, fp2);
+fread(&(miR[i].mi[k].loc), sizeof(int), 1, fp2);
 
-   fread (&(miR[i].mi[k].err), sizeof(int), 1, fp2);
+fread (&(miR[i].mi[k].err), sizeof(int), 1, fp2);
 
-   fread (&(miR[i].mi[k].cigarSize), sizeof(int), 1, fp2);
-   fread ((miR[i].mi[k].cigar), sizeof(char), miR[i].mi[k].cigarSize+1, fp2);
+fread (&(miR[i].mi[k].cigarSize), sizeof(int), 1, fp2);
+fread ((miR[i].mi[k].cigar), sizeof(char), miR[i].mi[k].cigarSize+1, fp2);
 
-   fread (&(miR[i].mi[k].mdSize), sizeof(int), 1, fp2);
-   fread ((miR[i].mi[k].md), sizeof(char), miR[i].mi[k].mdSize+1, fp2);
+fread (&(miR[i].mi[k].mdSize), sizeof(int), 1, fp2);
+fread ((miR[i].mi[k].md), sizeof(char), miR[i].mi[k].mdSize+1, fp2);
 
-   miR[i].mi[k].dir = 1;
-   if(miR[i].mi[k].loc < 1)
-   {
-   miR[i].mi[k].loc *= -1;
-   miR[i].mi[k].dir = -1;
-   }
-   }
-   if(_msf_readHasConcordantMapping[i] == 0 && size1 != 0 && size2 != 0 && (size1 * size2 < MAX_TRANS_CHROMOSAL_OUTPUT))
-   {
-   int d1 = 0;
-   int d2 = 0;
-   char *seq, *qual;
-   char *seq1, *seq2, *rseq1, *rseq2, *qual1, *qual2;
-   char rqual1[SEQ_LENGTH+1], rqual2[SEQ_LENGTH+1];
-   rqual1[SEQ_LENGTH] = rqual2[SEQ_LENGTH] = '\0';
-   seq1 = _msf_seqList[i*2].seq;
-   rseq1 = _msf_seqList[i*2].rseq;
-   qual1 = _msf_seqList[i*2].qual;
-   reverse(_msf_seqList[i*2].qual, rqual1, SEQ_LENGTH);
+miR[i].mi[k].dir = 1;
+if(miR[i].mi[k].loc < 1)
+{
+  miR[i].mi[k].loc *= -1;
+  miR[i].mi[k].dir = -1;
+}
+}
+if(_msf_readHasConcordantMapping[i] == 0 && size1 != 0 && size2 != 0 && (size1 * size2 < MAX_TRANS_CHROMOSAL_OUTPUT))
+{
+  int d1 = 0;
+  int d2 = 0;
+  char *seq, *qual;
+  char *seq1, *seq2, *rseq1, *rseq2, *qual1, *qual2;
+  char rqual1[SEQ_LENGTH+1], rqual2[SEQ_LENGTH+1];
+  rqual1[SEQ_LENGTH] = rqual2[SEQ_LENGTH] = '\0';
+  seq1 = _msf_seqList[i*2].seq;
+  rseq1 = _msf_seqList[i*2].rseq;
+  qual1 = _msf_seqList[i*2].qual;
+  reverse(_msf_seqList[i*2].qual, rqual1, SEQ_LENGTH);
 
-   seq2 = _msf_seqList[i*2+1].seq;
-   rseq2 = _msf_seqList[i*2+1].rseq;
-   qual2 = _msf_seqList[i*2+1].qual;
-   reverse(_msf_seqList[i*2+1].qual, rqual2, SEQ_LENGTH);
+  seq2 = _msf_seqList[i*2+1].seq;
+  rseq2 = _msf_seqList[i*2+1].rseq;
+  qual2 = _msf_seqList[i*2+1].qual;
+  reverse(_msf_seqList[i*2+1].qual, rqual2, SEQ_LENGTH);
 
-   for(j = 0; j < size1; j++)
-   {
-   d1 = (miL[i].mi[j].dir == -1)?1:0;
+  for(j = 0; j < size1; j++)
+  {
+    d1 = (miL[i].mi[j].dir == -1)?1:0;
 
-   if ( d1 )
-   {
-   seq = rseq1;
-   qual = rqual1;
-   }
-   else
-   {
-   seq = seq1;
-   qual = qual1;
-   }
+    if ( d1 )
+    {
+      seq = rseq1;
+      qual = rqual1;
+    }
+    else
+    {
+      seq = seq1;
+      qual = qual1;
+    }
 
-   for(k = 0; k < size2; k++)
-   {
+    for(k = 0; k < size2; k++)
+    {
 
-   d2 = (miR[i].mi[k].dir == -1)?1:0;
+      d2 = (miR[i].mi[k].dir == -1)?1:0;
 
-   _msf_output.POS                 = miL[i].mi[j].loc;
-   _msf_output.MPOS                = miR[i].mi[k].loc;
-   _msf_output.FLAG                = 0;
-   _msf_output.ISIZE               = 0;
-   _msf_output.SEQ                 = seq;
-   _msf_output.QUAL                = qual;
-   _msf_output.QNAME               = _msf_seqList[i*2].name;
-   _msf_output.RNAME               = geneFileName1;
-   _msf_output.MAPQ                = 255;
-   _msf_output.CIGAR               = miL[i].mi[j].cigar;
-   _msf_output.MRNAME              = "=";
+      _msf_output.POS                 = miL[i].mi[j].loc;
+      _msf_output.MPOS                = miR[i].mi[k].loc;
+      _msf_output.FLAG                = 0;
+      _msf_output.ISIZE               = 0;
+      _msf_output.SEQ                 = seq;
+      _msf_output.QUAL                = qual;
+      _msf_output.QNAME               = _msf_seqList[i*2].name;
+      _msf_output.RNAME               = geneFileName1;
+      _msf_output.MAPQ                = 255;
+      _msf_output.CIGAR               = miL[i].mi[j].cigar;
+      _msf_output.MRNAME              = "=";
 
-   _msf_output.optSize     = 2;
-   _msf_output.optFields   = _msf_optionalFields;
+      _msf_output.optSize     = 2;
+      _msf_output.optFields   = _msf_optionalFields;
 
-   _msf_optionalFields[0].tag = "NM";
-   _msf_optionalFields[0].type = 'i';
-   _msf_optionalFields[0].iVal = miL[i].mi[j].err;
+      _msf_optionalFields[0].tag = "NM";
+      _msf_optionalFields[0].type = 'i';
+      _msf_optionalFields[0].iVal = miL[i].mi[j].err;
 
-   _msf_optionalFields[1].tag = "MD";
-   _msf_optionalFields[1].type = 'Z';
-   _msf_optionalFields[1].sVal = miL[i].mi[j].md;
-
-
-   if ( d2 )
-   {
-   seq = rseq2;
-   qual = rqual2;
-   }
-   else
-   {
-   seq = seq2;
-   qual = qual2;
-   }
-
-   outputSAM(fp_out, _msf_output);
+      _msf_optionalFields[1].tag = "MD";
+      _msf_optionalFields[1].type = 'Z';
+      _msf_optionalFields[1].sVal = miL[i].mi[j].md;
 
 
-   _msf_output.POS                 = miR[i].mi[k].loc;
-   _msf_output.MPOS                = miL[i].mi[j].loc;
-   _msf_output.FLAG                = 0;
-   _msf_output.ISIZE               = 0;
-   _msf_output.SEQ                 = seq;
-   _msf_output.QUAL                = qual;
-   _msf_output.QNAME               = _msf_seqList[i*2+1].name;
-   _msf_output.RNAME               = geneFileName2;
-   _msf_output.MAPQ                = 255;
-   _msf_output.CIGAR               = miR[i].mi[k].cigar;
-   _msf_output.MRNAME              = "=";
+      if ( d2 )
+      {
+        seq = rseq2;
+        qual = rqual2;
+      }
+      else
+      {
+        seq = seq2;
+        qual = qual2;
+      }
 
-   _msf_output.optSize     = 2;
-   _msf_output.optFields   = _msf_optionalFields;
+      outputSAM(fp_out, _msf_output);
 
-   _msf_optionalFields[0].tag = "NM";
-   _msf_optionalFields[0].type = 'i';
-   _msf_optionalFields[0].iVal = miR[i].mi[k].err;
 
-   _msf_optionalFields[1].tag = "MD";
-   _msf_optionalFields[1].type = 'Z';
-   _msf_optionalFields[1].sVal = miR[i].mi[k].md;
+      _msf_output.POS                 = miR[i].mi[k].loc;
+      _msf_output.MPOS                = miL[i].mi[j].loc;
+      _msf_output.FLAG                = 0;
+      _msf_output.ISIZE               = 0;
+      _msf_output.SEQ                 = seq;
+      _msf_output.QUAL                = qual;
+      _msf_output.QNAME               = _msf_seqList[i*2+1].name;
+      _msf_output.RNAME               = geneFileName2;
+      _msf_output.MAPQ                = 255;
+      _msf_output.CIGAR               = miR[i].mi[k].cigar;
+      _msf_output.MRNAME              = "=";
 
-   outputSAM(fp_out, _msf_output);
+      _msf_output.optSize     = 2;
+      _msf_output.optFields   = _msf_optionalFields;
 
-   }
-   }
-   }
-   }
+      _msf_optionalFields[0].tag = "NM";
+      _msf_optionalFields[0].type = 'i';
+      _msf_optionalFields[0].iVal = miR[i].mi[k].err;
 
-   }
+      _msf_optionalFields[1].tag = "MD";
+      _msf_optionalFields[1].type = 'Z';
+      _msf_optionalFields[1].sVal = miR[i].mi[k].md;
 
-   for(i = 0; i < _msf_seqListSize / 2; i++)
-   {
-   freeMem(miL[i].mi, miL[i].size * sizeof(FullMappingInfo));
-   freeMem(miR[i].mi, miR[i].size * sizeof(FullMappingInfo));
-   }
+      outputSAM(fp_out, _msf_output);
 
-   freeMem(miL, _msf_seqListSize * sizeof(FullMappingInfoLink));
-   freeMem(miR, _msf_seqListSize * sizeof(FullMappingInfoLink));
+    }
+  }
+}
+}
 
-   fclose(fp1);
-   fclose(fp2);
-   }
+}
+
+for(i = 0; i < _msf_seqListSize / 2; i++)
+{
+  freeMem(miL[i].mi, miL[i].size * sizeof(FullMappingInfo));
+  freeMem(miR[i].mi, miR[i].size * sizeof(FullMappingInfo));
+}
+
+freeMem(miL, _msf_seqListSize * sizeof(FullMappingInfoLink));
+freeMem(miR, _msf_seqListSize * sizeof(FullMappingInfoLink));
+
+fclose(fp1);
+fclose(fp2);
+}
 
 */
 
 /*
-  if flag is 1 it will output all the possible trans chromsal mapping
-  otherwise only tmp file will be delete
+   if flag is 1 it will output all the possible trans chromsal mapping
+   otherwise only tmp file will be delete
 
 */
 
@@ -4093,6 +4522,6 @@ void outputAllTransChromosomal(int flag) {
      }
      if(flag)
      fclose(fp_out);
-  */
+     */
 }
 

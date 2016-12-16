@@ -221,7 +221,7 @@ __m128i xor11complement_sse(__m128i input) {
   return result;
 }
 
-void flip_false_zero(__m128i& vec) {
+void flip_false_zero(__m128i vec) {
 
   //	printf("vec: \t\t");
   //	print128_bit(vec);
