@@ -1,8 +1,8 @@
 CXX = g++
 CFLAGS = -std=c++11 -O2 -Wall -pthread -lpthread 
 
-Crossbar16: readfasta.cpp compare16.cpp compare4.cpp
-	$(CXX) $(CFLAGS) -o Crossbar16 readfasta.cpp compare16.cpp compare4.cpp
+CrossbarSHD: crossbar_shd.cpp ctpl.h
+	$(CXX) $(CFLAGS) -o CrossbarSHD crossbar_shd.cpp ctpl.h
 
 clean:
-	rm Crossbar16 
+	rm CrossbarSHD 
