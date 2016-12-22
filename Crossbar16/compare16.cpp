@@ -15,19 +15,14 @@ using namespace std;
  */
 static string compare16(vector<unsigned short>* ref, vector<unsigned short> read_in, vector<unsigned short> inverse, int shift, int threshold, int* num_matches) {
 
-  // Compare the read against every spot in the reference
-  // Return an array of locations in the reference that are viable
-  // Alternatively could return an array of strings of viable comparison spots.
-
   // Set up space for results.
   stringstream s;
-  //vector<long> results(0);
   int matches = 0;
 
 
   // Set up variables
-  int i = 0;
-  long k = 0;
+  unsigned int i = 0;
+  unsigned int k = 0;
   unsigned int read_size = read_in.size();
   vector<unsigned short> read(0);
   vector<unsigned short> inv(0);
@@ -39,9 +34,9 @@ static string compare16(vector<unsigned short>* ref, vector<unsigned short> read
     // Prepare the read parameters
     unsigned short a = read_in.at(i);
     unsigned short b = inverse.at(i);
-    int j;
-    for(j=0; j <= shift; j++) {
-      if(i-j>=0){
+    unsigned int j;
+    for(j=0; j <= (unsigned)shift; j++) {
+      if(i >= j){
         a = a | read_in.at(i-j);
         b = b | inverse.at(i-j);
       }
@@ -56,7 +51,6 @@ static string compare16(vector<unsigned short>* ref, vector<unsigned short> read
 
   // Compare read strand with entire reference genome.
   for(k = 0; k <= ref_size - read_size; k++) {
-    int result = 0;
     int error = 0;
     int error_inv = 0;
     for(i = 0; i < read_size; i++) {
@@ -75,9 +69,9 @@ static string compare16(vector<unsigned short>* ref, vector<unsigned short> read
     }
     //If the result is over or equal to the threshold
     if(error <= threshold){
-			unsigned int kk = 0;
-			s << k << "\tn\t" << error << '\t';
-			for(; kk < read_size; kk+=2) {
+      unsigned int kk = 0;
+      s << k << "\tn\t" << error << '\t';
+      for(; kk < read_size; kk+=2) {
         unsigned short c1 = ref->at(k+kk);
         char c2 = 0x20;
         char c3 = 0x20;
@@ -100,17 +94,16 @@ static string compare16(vector<unsigned short>* ref, vector<unsigned short> read
           case 0x0001: c2 = 'G'; c3 = 'G'; break;
           default: c2 = ' '; c3 = ' '; break;
         }
-				s << c2 << c3;
-			}
-			s<<"\n";
-      //results.push_back(k);
+        s << c2 << c3;
+      }
+      s<<"\n";
       matches += 1;
-		}
-		
-		if(error_inv <= threshold){
-			unsigned int kk = 0;
-			s << k << "\tri\t" << error_inv << '\t';
-			for(; kk < read_size; kk+=2) {
+    }
+
+    if(error_inv <= threshold){
+      unsigned int kk = 0;
+      s << k << "\tri\t" << error_inv << '\t';
+      for(; kk < read_size; kk+=2) {
         unsigned short c1 = ref->at(k+kk);
         char c2 = 0x20;
         char c3 = 0x20;
@@ -133,12 +126,11 @@ static string compare16(vector<unsigned short>* ref, vector<unsigned short> read
           case 0x0001: c2 = 'G'; c3 = 'G'; break;
           default: c2 = ' '; c3 = ' '; break;
         }
-				s << c2 << c3;
-			}
-			s << "\n";
-      //results.push_back(k);
+        s << c2 << c3;
+      }
+      s << "\n";
       matches += 1;
-		}
+    }
   }
 
   (*num_matches) = matches;
