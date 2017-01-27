@@ -1,3 +1,16 @@
+/* 
+ * TODO:
+ *  Change vector that stores the reference genome into a map of vectors, and store each chromosome separately
+ *  Report the chromosome index and index into the chromosome instead of a global index number
+ *  Change output reporting
+ *
+ *  output: NAME    0/16    Chrom   Index   255   100M    *   0   0   Sequence .....
+ * 
+ * crossbar_shd.cpp
+ * Author: Keeton Hodgson
+ * 1/17/2017
+ */
+
 #include <stdio.h>
 #include <vector>
 #include <iostream>
@@ -11,19 +24,23 @@
 using namespace std;
 
 char* ParseFile(char** argv, int i);
-void PrepareReference16(char* ref_file, vector<unsigned short> * ref);
-void PrepareReference4(char* ref_file, vector<unsigned char> * ref);
-unsigned short ConvertCharacters16(char char1, char char2);
-unsigned short ConvertInverseCharacters16(char char1, char char2);
-void read_compare_func16(int id, string header, string read_line, vector<unsigned short> * ref, int shift, int threshold);
-void read_compare_func4(int id, string header, string read_line, vector<unsigned char> * ref, int shift, int threshold);
+
+void PrepareReference16(char* ref_file, vector<vector<unsigned short>* > * ref, vector<string> * ref_names);
+void PrepareReference4(char* ref_file, vector<vector<unsigned char> *> * ref, vector<string> * ref_names);
+
+void read_compare_func16(int id, string header, string read_line, string chrom_name, vector<unsigned short> * ref, int shift, int threshold);
+void read_compare_func4(int id, string header, string read_line, string chrom_name, vector<unsigned char> * ref, int shift, int threshold);
+
 void CompareRead16(char* read_file, char* reference_file, int shift, int threshold);
 void CompareRead4(char* read_file, char* reference_file, int shift, int threshold);
+
+unsigned short ConvertCharacters16(char char1, char char2);
+unsigned short ConvertInverseCharacters16(char char1, char char2);
 unsigned char ConvertCharacter4(char char1);
 unsigned char ConvertCharacterInverse4(char char1);
 
-string compare16(vector<unsigned short>* ref, vector<unsigned short> read_in, vector<unsigned short> inverse, int shift, int threshold, int* num_matches);
-string compare4(vector<unsigned char>* ref, vector<unsigned char> read_in, vector<unsigned char> inverse, int shift, int threshold, int* num_matches);
+string compare16(vector<unsigned short>* ref, vector<unsigned short> read_in, vector<unsigned short> inverse, int shift, int threshold, int* num_matches, string name, string chrom_name);
+string compare4(vector<unsigned char>* ref, vector<unsigned char> read_in, vector<unsigned char> inverse, int shift, int threshold, int* num_matches, string name, string chrom_name);
 
 static int report_total_matches = 0;
 
@@ -53,7 +70,7 @@ int main(int argc, char** argv)
               return 1;
             }
             // Debugging output, remove later.
-            cout << "Reference: " << reference_file << "\n";
+            // cout << "Reference: " << reference_file << "\n";
           }
           break;
         case '4': encoding = 0;
@@ -74,6 +91,8 @@ int main(int argc, char** argv)
                     cout << "\t-4: use 4-bit encodings\n";
                     cout << "\t-16: use 16-bit encodings\n";
                     cout << "\t-m: turn on total match reporting\n";
+                    cout << "\t-o1: output grouped by sequence name\n";
+                    cout << "\t-o2: output grouped by chromosome name\n";
                     // Using the help flag will only print this help dialog.
                     return 0;
                   }
@@ -86,7 +105,7 @@ int main(int argc, char** argv)
                       return 1;
                     }
                     // Debugging output, remove later.
-                    cout << "Read: " << read_file << "\n";
+                    // cout << "Read: " << read_file << "\n";
                   }
                   break;
         case 't': //threshold (read size - threshold) 0 means no errors tolerated
@@ -116,8 +135,8 @@ int main(int argc, char** argv)
     }
   }
 
-  cout<<"shift: "<< shift<<endl;
-  cout<<"threshold: "<< threshold<<endl;
+  //cout<<"shift: "<< shift<<endl;
+  //cout<<"threshold: "<< threshold<<endl;
 
   if(!reference_file || !read_file) {
     cerr<< "Need to specify a reference and read file.\n";
@@ -130,11 +149,11 @@ int main(int argc, char** argv)
    */
 
   if(encoding){
-    cout<<"16 Bit encodings.\n";
+    //cout<<"16 Bit encodings.\n";
     CompareRead16(read_file, reference_file, shift, threshold);
   }
   else{
-    cout<<"4 Bit encodings.\n";
+    //cout<<"4 Bit encodings.\n";
     CompareRead4(read_file, reference_file, shift, threshold);
   }
 
@@ -168,9 +187,11 @@ char* ParseFile(char** argv, int i) {
  * 16 bit version
  */
 void CompareRead16(char* read_file, char* reference_file, int shift, int threshold) {
-  std::vector<unsigned short> ref(0);
-  ref.reserve(3500000000);
-  PrepareReference16(reference_file, &ref);
+  vector<vector<unsigned short> * > ref(0);
+  vector<string> ref_names(0);
+  ref.reserve(64);
+  ref_names.reserve(64);
+  PrepareReference16(reference_file, &ref, &ref_names);
   ctpl::thread_pool p(8);
 
   // Set up and read from the file with the read sequences
@@ -180,19 +201,21 @@ void CompareRead16(char* read_file, char* reference_file, int shift, int thresho
 
     // Step through the read sequences
     while(getline(file, read_line)) {
-      if(read_line.size() > 2 && read_line[0] == '@') {
-        char c = read_line[0];
-        string s = "";
-        int cindex = 0;
+      if(read_line.size() > 2 && read_line[0] == '@' && read_line[1] == 'E' && read_line[2] == 'R') {
+        char c = read_line[1];
+        string name = "";
+        int cindex = 1;
         while(c != ' ') {
-          s+=c;
+          name+=c;
           cindex++;
           c = read_line[cindex];
         }
-        s+='\t';
+        // s+='\t';
 
         getline(file, read_line);
-        p.push(read_compare_func16, s, read_line, &ref, shift, threshold);
+        for(unsigned int i = 0; i < ref.size(); i++){
+          p.push(read_compare_func16, name, read_line, ref_names.at(i), ref.at(i), shift, threshold);
+        }
       }
     }
   }
@@ -205,10 +228,10 @@ void CompareRead16(char* read_file, char* reference_file, int shift, int thresho
 /*
  * Helper function for CompareRead16. This function is passed into thread arguments
  */
-void read_compare_func16(int id, string header, string read_line, vector<unsigned short> * ref, int shift, int threshold) {
+void read_compare_func16(int id, string header, string read_line, string chrom_name, vector<unsigned short> * ref, int shift, int threshold) {
   int j = 0;
   // Save read sequence
-  header += read_line + '\n';
+  //header += read_line + '\n';
 
   std::vector<unsigned short> readv(0);
   std::vector<unsigned short> read_inverse(0);
@@ -219,12 +242,14 @@ void read_compare_func16(int id, string header, string read_line, vector<unsigne
   }
 
   int num_matches = 0;
-  header += compare16(ref, readv, read_inverse, shift, threshold, &num_matches);
+  string res = compare16(ref, readv, read_inverse, shift, threshold, &num_matches, header, chrom_name);
 
-  if(report_total_matches)
-    cout<<header<<"TOTAL MATCHES: " << num_matches << '\n' << endl;
-  else
-    cout<<header<<endl;
+  if(res.size() > 1){
+    if(report_total_matches)
+      cout<<res<<"TOTAL MATCHES: " << num_matches << '\n' << endl;
+    else
+      cout<<res.substr(0, res.size()-1)<<endl;
+  }
 }
 
 /*
@@ -232,9 +257,11 @@ void read_compare_func16(int id, string header, string read_line, vector<unsigne
  * 4 bit version
  */
 void CompareRead4(char* read_file, char* reference_file, int shift, int threshold) {
-  std::vector<unsigned char> ref(0);
-  ref.reserve(3500000000);
-  PrepareReference4(reference_file, &ref);
+  vector<vector<unsigned char>*> ref(0);
+  vector<string> ref_names(0);
+  ref.reserve(64);
+  ref_names.reserve(64);
+  PrepareReference4(reference_file, &ref, &ref_names);
   ctpl::thread_pool p(8);
 
   // Set up and read from the file with the read sequences
@@ -244,19 +271,21 @@ void CompareRead4(char* read_file, char* reference_file, int shift, int threshol
 
     // Step through the read sequences
     while(getline(file, read_line)) {
-      if(read_line.size() > 2 && read_line[0] == '@') {
-        char c = read_line[0];
+      if(read_line.size() > 2 && read_line[0] == '@' && read_line[1] == 'E' && read_line[2] == 'R') {
+        char c = read_line[1];
         string s = "";
-        int cindex = 0;
+        int cindex = 1;
         while(c != ' ') {
           s+=c;
           cindex++;
           c = read_line[cindex];
         }
-        s+='\t';
+        //s+='\t';
 
         getline(file, read_line);
-        p.push(read_compare_func4, s, read_line, &ref, shift, threshold);
+        for(unsigned int i = 0; i < ref.size(); i++) {
+          p.push(read_compare_func4, s, read_line, ref_names.at(i), ref.at(i), shift, threshold);
+        }
       }
     }
   }
@@ -269,10 +298,10 @@ void CompareRead4(char* read_file, char* reference_file, int shift, int threshol
 /*
  * Helper function for CompareRead4. THis function is passed into threads to be run
  */
-void read_compare_func4(int id, string header, string read_line, vector<unsigned char> * ref, int shift, int threshold) {
+void read_compare_func4(int id, string header, string read_line, string chrom_name, vector<unsigned char> * ref, int shift, int threshold) {
   int j = 0;
   // Save read sequence
-  header += read_line + '\n';
+  //header += read_line + '\n';
 
   std::vector<unsigned char> readv(0);
   std::vector<unsigned char> read_inverse(0);
@@ -283,12 +312,14 @@ void read_compare_func4(int id, string header, string read_line, vector<unsigned
   }
 
   int num_matches = 0;
-  header += compare4(ref, readv, read_inverse, shift, threshold, &num_matches);
+  string res = compare4(ref, readv, read_inverse, shift, threshold, &num_matches, header, chrom_name);
 
+  if(res.size() > 1) {
   if(report_total_matches)
-    cout<<header<<"TOTAL MATCHES: " << num_matches << '\n' << endl;
+    cout<<res<<"TOTAL MATCHES: " << num_matches << '\n' << endl;
   else
-    cout<<header<<endl;
+    cout<<res.substr(0, res.size() - 1)<<endl;
+  }
 }
 
 /*
@@ -311,26 +342,38 @@ void read_compare_func4(int id, string header, string read_line, vector<unsigned
  * GC: 0x0002
  * GG: 0x0001
  */
-void PrepareReference16(char* ref_file, vector<unsigned short> * ref){
+void PrepareReference16(char* ref_file, vector<vector<unsigned short> * > * ref, vector<string> * ref_names){
   string line;
   ifstream reference(ref_file);
   if(reference.is_open()) {
     char previous = 0;
-    // What if we tried buffers instead of lines?
+
+    vector<unsigned short> *chromosome;// = new vector<unsigned short>();
+    //cout << "parsing reference" << endl;
     while(getline(reference, line)) {
       if(line.size() ==0)
         continue;
       if (line[0] != '>'){
         unsigned int i = 0;
         if(previous)
-          ref->push_back(ConvertCharacters16(previous, line[0]));
+          chromosome->push_back(ConvertCharacters16(previous, line[0]));
         for(; i < line.size()-1; i++) {
-          ref->push_back(ConvertCharacters16(line[i], line[i+1]));
+          chromosome->push_back(ConvertCharacters16(line[i], line[i+1]));
         }
         previous = line[line.size()-1];
       }
       else {
-
+        string name = "";
+        int j = 1;
+        while(line[j] != ' ' && line[j] != '\t'){
+          name+=line[j];
+          j++;
+        }
+        chromosome = new vector<unsigned short>();
+        ref->push_back(chromosome);
+        ref_names->push_back(name);
+        // Store Chromosome data here
+        // Note: A strand cannot match from the end of one chromosome to the beginning of the next, or can it?
       }
     }
 
@@ -433,10 +476,12 @@ unsigned short ConvertInverseCharacters16(char char1, char char2) {
 /*
  * Converts the reference into 4 bit codes
  */
-void PrepareReference4(char* ref_file, vector<unsigned char> * ref){
+void PrepareReference4(char* ref_file, vector<vector<unsigned char> *> * ref, vector<string> *ref_names){
   string line;
   ifstream reference(ref_file);
   if(reference.is_open()) {
+
+    vector<unsigned char> *chromosome;
 
     // What if we tried buffers instead of lines?
     while(getline(reference, line)) {
@@ -445,11 +490,19 @@ void PrepareReference4(char* ref_file, vector<unsigned char> * ref){
       if (line[0] != '>'){
         unsigned int i = 0;
         for(; i < line.size(); i++) {
-          ref->push_back(ConvertCharacter4(line[i]));
+          chromosome->push_back(ConvertCharacter4(line[i]));
         }
       }
       else {
-
+        string name = "";
+        int j = 1;
+        while(line[j] != ' ' && line[j] != '\t') {
+          name += line[j];
+          j++;
+        }
+        chromosome = new vector<unsigned char>();
+        ref->push_back(chromosome);
+        ref_names->push_back(name);
       }
     }
 
@@ -495,7 +548,7 @@ unsigned char ConvertCharacterInverse4(char char1) {
  * shift: multiplex distance
  * threshold: minimum value allowed.
  */
-string compare16(vector<unsigned short>* ref, vector<unsigned short> read_in, vector<unsigned short> inverse, int shift, int threshold, int* num_matches) {
+string compare16(vector<unsigned short>* ref, vector<unsigned short> read_in, vector<unsigned short> inverse, int shift, int threshold, int* num_matches, string name, string chrom_name) {
 
   // Set up space for results.
   stringstream s;
@@ -551,65 +604,65 @@ string compare16(vector<unsigned short>* ref, vector<unsigned short> read_in, ve
     }
     //If the result is over or equal to the threshold
     if(error <= threshold){
-      unsigned int kk = 0;
-      s << k << "\tn\t" << error << '\t';
-      for(; kk < read_size; kk+=2) {
+      //unsigned int kk = 0;
+      s << name << "\t0\t" << chrom_name << '\t' << k << '\t' << error << '\t';
+      /*for(; kk < read_size; kk+=2) {
         unsigned short c1 = ref->at(k+kk);
         char c2 = 0x20;
         char c3 = 0x20;
         switch(c1) {
-          case 0x8000: c2 = 'A'; c3 = 'A'; break;
-          case 0x4000: c2 = 'A'; c3 = 'T'; break;
-          case 0x2000: c2 = 'A'; c3 = 'C'; break;
-          case 0x1000: c2 = 'A'; c3 = 'G'; break;
-          case 0x0800: c2 = 'T'; c3 = 'A'; break;
-          case 0x0400: c2 = 'T'; c3 = 'T'; break;
-          case 0x0200: c2 = 'T'; c3 = 'C'; break;
-          case 0x0100: c2 = 'T'; c3 = 'G'; break;
-          case 0x0080: c2 = 'C'; c3 = 'A'; break;
-          case 0x0040: c2 = 'C'; c3 = 'T'; break;
-          case 0x0020: c2 = 'C'; c3 = 'C'; break;
-          case 0x0010: c2 = 'C'; c3 = 'G'; break;
-          case 0x0008: c2 = 'G'; c3 = 'A'; break;
-          case 0x0004: c2 = 'G'; c3 = 'T'; break;
-          case 0x0002: c2 = 'G'; c3 = 'C'; break;
-          case 0x0001: c2 = 'G'; c3 = 'G'; break;
-          default: c2 = ' '; c3 = ' '; break;
+        case 0x8000: c2 = 'A'; c3 = 'A'; break;
+        case 0x4000: c2 = 'A'; c3 = 'T'; break;
+        case 0x2000: c2 = 'A'; c3 = 'C'; break;
+        case 0x1000: c2 = 'A'; c3 = 'G'; break;
+        case 0x0800: c2 = 'T'; c3 = 'A'; break;
+        case 0x0400: c2 = 'T'; c3 = 'T'; break;
+        case 0x0200: c2 = 'T'; c3 = 'C'; break;
+        case 0x0100: c2 = 'T'; c3 = 'G'; break;
+        case 0x0080: c2 = 'C'; c3 = 'A'; break;
+        case 0x0040: c2 = 'C'; c3 = 'T'; break;
+        case 0x0020: c2 = 'C'; c3 = 'C'; break;
+        case 0x0010: c2 = 'C'; c3 = 'G'; break;
+        case 0x0008: c2 = 'G'; c3 = 'A'; break;
+        case 0x0004: c2 = 'G'; c3 = 'T'; break;
+        case 0x0002: c2 = 'G'; c3 = 'C'; break;
+        case 0x0001: c2 = 'G'; c3 = 'G'; break;
+        default: c2 = ' '; c3 = ' '; break;
         }
-        s << c2 << c3;
-      }
+      //s << c2 << c3;
+      }*/
       s<<"\n";
       matches += 1;
     }
 
     if(error_inv <= threshold){
-      unsigned int kk = 0;
-      s << k << "\tri\t" << error_inv << '\t';
-      for(; kk < read_size; kk+=2) {
+      //unsigned int kk = 0;
+      s << name << "\t16\t" << chrom_name << '\t' << k << '\t' << error_inv << '\t';
+      /*for(; kk < read_size; kk+=2) {
         unsigned short c1 = ref->at(k+kk);
         char c2 = 0x20;
         char c3 = 0x20;
         switch(c1) {
-          case 0x8000: c2 = 'A'; c3 = 'A'; break;
-          case 0x4000: c2 = 'A'; c3 = 'T'; break;
-          case 0x2000: c2 = 'A'; c3 = 'C'; break;
-          case 0x1000: c2 = 'A'; c3 = 'G'; break;
-          case 0x0800: c2 = 'T'; c3 = 'A'; break;
-          case 0x0400: c2 = 'T'; c3 = 'T'; break;
-          case 0x0200: c2 = 'T'; c3 = 'C'; break;
-          case 0x0100: c2 = 'T'; c3 = 'G'; break;
-          case 0x0080: c2 = 'C'; c3 = 'A'; break;
-          case 0x0040: c2 = 'C'; c3 = 'T'; break;
-          case 0x0020: c2 = 'C'; c3 = 'C'; break;
-          case 0x0010: c2 = 'C'; c3 = 'G'; break;
-          case 0x0008: c2 = 'G'; c3 = 'A'; break;
-          case 0x0004: c2 = 'G'; c3 = 'T'; break;
-          case 0x0002: c2 = 'G'; c3 = 'C'; break;
-          case 0x0001: c2 = 'G'; c3 = 'G'; break;
-          default: c2 = ' '; c3 = ' '; break;
+        case 0x8000: c2 = 'A'; c3 = 'A'; break;
+        case 0x4000: c2 = 'A'; c3 = 'T'; break;
+        case 0x2000: c2 = 'A'; c3 = 'C'; break;
+        case 0x1000: c2 = 'A'; c3 = 'G'; break;
+        case 0x0800: c2 = 'T'; c3 = 'A'; break;
+        case 0x0400: c2 = 'T'; c3 = 'T'; break;
+        case 0x0200: c2 = 'T'; c3 = 'C'; break;
+        case 0x0100: c2 = 'T'; c3 = 'G'; break;
+        case 0x0080: c2 = 'C'; c3 = 'A'; break;
+        case 0x0040: c2 = 'C'; c3 = 'T'; break;
+        case 0x0020: c2 = 'C'; c3 = 'C'; break;
+        case 0x0010: c2 = 'C'; c3 = 'G'; break;
+        case 0x0008: c2 = 'G'; c3 = 'A'; break;
+        case 0x0004: c2 = 'G'; c3 = 'T'; break;
+        case 0x0002: c2 = 'G'; c3 = 'C'; break;
+        case 0x0001: c2 = 'G'; c3 = 'G'; break;
+        default: c2 = ' '; c3 = ' '; break;
         }
-        s << c2 << c3;
-      }
+      //s << c2 << c3;
+      }*/
       s << "\n";
       matches += 1;
     }
@@ -628,7 +681,7 @@ string compare16(vector<unsigned short>* ref, vector<unsigned short> read_in, ve
  * shift: multiplex distance
  * threshold: minimum value allowed.
  */
-string compare4(vector<unsigned char>* ref, vector<unsigned char> read_in, vector<unsigned char> inverse, int shift, int threshold, int* num_matches) {
+string compare4(vector<unsigned char>* ref, vector<unsigned char> read_in, vector<unsigned char> inverse, int shift, int threshold, int* num_matches, string name, string chrom_name) {
 
   // Set up space for results.
   stringstream s;
@@ -684,9 +737,9 @@ string compare4(vector<unsigned char>* ref, vector<unsigned char> read_in, vecto
 
     //If the result is over or equal to the threshold
     if(error <= threshold){
-      unsigned int kk = 0;
-      s << k << "\tn\t" << error << '\t';
-      for(; kk < read_size; kk++) {
+      //unsigned int kk = 0;
+      s << name << "\t0\t" << chrom_name << '\t' << k+1 << '\t' << error << '\t';
+      /*for(; kk < read_size; kk++) {
         unsigned char c1 = ref->at(k+kk);
         char c2 = 0x20;
         switch(c1) {
@@ -698,16 +751,16 @@ string compare4(vector<unsigned char>* ref, vector<unsigned char> read_in, vecto
           default: c2 = ' '; break;
         }
         s << c2;
-      }
+      }*/
       s << "\n";
       matches += 1;
     }
 
     //If the result is over or equal to the threshold
     if(error_inv <= threshold){
-      unsigned int kk = 0;
-      s << k << "\tn\t" << error_inv << '\t';
-      for(; kk < read_size; kk++) {
+      //unsigned int kk = 0;
+      s << name << "\t16\t" << chrom_name << '\t' << k+1 << '\t' << error_inv << '\t';
+      /*for(; kk < read_size; kk++) {
         unsigned char c1 = ref->at(k+kk);
         char c2 = 0x20;
         switch(c1) {
@@ -719,7 +772,7 @@ string compare4(vector<unsigned char>* ref, vector<unsigned char> read_in, vecto
           default: c2 = ' '; break;
         }
         s << c2;
-      }
+      }*/
       s << "\n";
       matches += 1;
     }

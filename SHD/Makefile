@@ -6,7 +6,7 @@ LD = ld
 
 LDFLAGS = -r
 
-CFLAGS = -O3 -msse4.2 -I . -I/usr/local/boost_1_62_0	
+CFLAGS = -std=c++11 -O3 -msse4.2 -I . -I/usr/local/boost_1_62_0	
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
 endif
@@ -45,7 +45,7 @@ sse.o: mask.o print.o bit_convert.o popcount.o vector_filter.o
 vector_filter: mask.o print.o bit_convert.o popcount.o vector_filter.o vector_filterMain.c
 	$(CXX) $(CFLAGS) $^ -o $@
 
-countPassFilter: mask.o print.o bit_convert.o popcount.o vector_filter.o countPassFilter.cc
+countPassFilter: mask.o print.o bit_convert.o popcount.o vector_filter.o countPassFilterK.cc
 	$(CXX) $(CFLAGS) $^ -o $@
 
 shift: mask.o print.o vector_filter.o popcount.o bit_convert.o shiftMain.c

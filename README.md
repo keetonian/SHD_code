@@ -7,3 +7,13 @@ Graph:
   Filters:
     Speed for GateKeeper, SHD, Ours
     # reads for GateKeeper, SHD, Ours
+
+TODO:
+Crossbar algorithm: output in SAM format (or at least report by chromosome+index)
+Consolidate tools
+Clean up repository
+Write comparison code that takes the actual matches and checks for false pos/neg matches for each type of result
+Sort matches, make them easier to access
+Generate graphs, visuals of data
+Continue reading papers on the subject, prepare a presentation.
+
